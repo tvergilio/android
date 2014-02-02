@@ -1,0 +1,159 @@
+package com.tvergilio.googleit;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.impl.client.AbstractHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.BasicHttpParams;
+
+import android.app.Activity;
+import android.app.Service;
+import android.content.Intent;
+import android.os.IBinder;
+import android.os.RemoteException;
+import android.util.Log;
+
+import com.tvergilio.googleit.service.IWordService;
+
+public class GoogleSuggestManagerService extends Service {
+
+	private static final String TAG = "GoogleSuggestManagerService";
+
+	// This is a data access object used for persisting word information.
+	private WordDb db;
+
+	// Timestamp of last time word data was downloaded from the Itnernet
+	private long timestamp = 0L;
+
+	// How old downloaded word data can be and still be used
+	private static final int MAX_CACHE_AGE = 15 * 60 * 1000; // 15 minutes
+
+	private static final AbstractHttpClient httpClient;
+
+	static {
+		SchemeRegistry schemeRegistry = new SchemeRegistry();
+		schemeRegistry.register(new Scheme("http", PlainSocketFactory
+				.getSocketFactory(), 80));
+		ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(
+				new BasicHttpParams(), schemeRegistry);
+		httpClient = new DefaultHttpClient(cm, null);
+	}
+
+	public static HttpClient getHttpClient() {
+		return httpClient;
+	}
+
+	@Override
+	public void onCreate() {
+		// TODO Auto-generated method stub
+		super.onCreate();
+		db = new WordDb(this);
+	}
+
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) {
+		if (db == null) {
+			db = new WordDb(this);
+		}
+		try {
+			updateWordData();
+		} catch (IOException e) {
+			Log.e(TAG, "Exception updating word data", e);
+		}
+		return Service.START_STICKY;
+	}
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		if (db == null) {
+			db = new WordDb(this);
+		}
+		// implement the IStockService interface defined in AIDL
+		return new IWordService.Stub() {
+			public void addToWordCollection(Word word) throws RemoteException {
+				Log.d(TAG, "Adding word=" + word);
+				Word w = db.addWord(word);
+				Log.d(TAG, "Word added to db");
+				try {
+					updateWordData();
+					for (Word x : db.getWords()) {
+						if (x.getName().equalsIgnoreCase(word.getName())) {
+							w = x;
+						}
+					}
+					Log.d(TAG, "Word data updated");
+				} catch (IOException e) {
+					Log.e(TAG, "Exception updating word data", e);
+					throw new RemoteException();
+				}
+				
+			}
+
+			public List<Word> getWordCollection() throws RemoteException {
+				Log.d(TAG, "Getting words collection");
+				ArrayList<Word> words = db.getWords();
+				long currTime = System.currentTimeMillis();
+				if (currTime - timestamp <= MAX_CACHE_AGE) {
+					Log.d(TAG, "Fresh cache, returning it");
+					return words;
+				}
+				// else cache is stale, refresh it
+				Word[] currWords = new Word[words.size()];
+				words.toArray(currWords);
+				try {
+					Log.d(TAG, "Stale cache, refreshing it");
+					ArrayList<Word> newWords = fetchWordData(currWords);
+					Log.d(TAG, "Got new word data, updating cache");
+					updateCachedWords(newWords);
+					return newWords;
+				} catch (Exception e) {
+					Log.e(TAG, "Exception getting word data", e);
+					throw new RemoteException();
+				}
+			}
+		};
+
+	}
+
+	@Override
+	public void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		db.close();
+	}
+
+	private void updateWordData() throws IOException {
+		ArrayList<Word> words = db.getWords();
+		ArrayList<String> currWordNames = new ArrayList<String>(words.size());
+		for (Word word : words) {
+			currWordNames.add(word.getName());
+		}
+		new UpdateWordTask(new Activity()).execute((String[][]) currWordNames.toArray());
+		updateCachedWords(words);
+	}
+
+	private void updateCachedWords(ArrayList<Word> words) {
+		Log.d(TAG, "Got new word data to update cache with");
+		timestamp = System.currentTimeMillis();
+		Word[] currWords = new Word[words.size()];
+		currWords = words.toArray(currWords);
+		for (Word word : currWords) {
+			Log.d(TAG, "Updating cache with word=" + word.toString());
+			db.updateWordSuggestions(word);
+		}
+
+	}
+
+	
+}
