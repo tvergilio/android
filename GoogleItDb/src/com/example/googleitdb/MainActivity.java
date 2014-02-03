@@ -8,13 +8,16 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.app.Activity;
+import android.app.ListActivity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -27,23 +30,52 @@ import android.util.Log;
 import android.util.Xml;
 import android.view.Menu;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	private static final String DEBUG_TAG = "MainActivity";
-	private TextView serviceText;
-	private TextView serviceText2;
-	private TextView serviceText3;
+	private TextView serviceTextMain;
+	private String wordName;
+	private List<String> result;
 	private static final String ns = null;
+	private ListView listview;
+	private TextView listTextView;
+	private ArrayAdapter<String> adapter;
+
+	public List<String> getResult() {
+		return result;
+	}
+
+	public void setResult(List<String> result) {
+		this.result = result;
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		serviceText = (TextView) findViewById(R.id.service_text);
-		serviceText2 = (TextView) findViewById(R.id.service_text2);
-		serviceText3 = (TextView) findViewById(R.id.service_text3);
+		result = new ArrayList<String>();
+		listview = (ListView) findViewById(R.id.listview);
+		listTextView = (TextView) findViewById(R.id.list_text_view);
+		adapter = new ArrayAdapter<String>(MainActivity.this,
+				android.R.layout.simple_list_item_1, result);
+		
+		listview.setAdapter(adapter);
+		listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+			@Override
+			public void onItemClick(AdapterView<?> parent, final View view,
+					int position, long id) {
+				final String item = (String) parent.getItemAtPosition(position);
+
+			}
+
+		});
+		
+		serviceTextMain = (TextView) findViewById(R.id.service_text_main);
 		SQLiteDatabase db;
 		db = openOrCreateDatabase("words.db",
 				SQLiteDatabase.CREATE_IF_NECESSARY, null);
@@ -78,17 +110,35 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	public void switchActivity(View view) {
+	public void buttonActivity(View view) {
+		wordName = getRandomWord();
 		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if (networkInfo != null && networkInfo.isConnected()) {
-			new DownloadWebpageTask().execute(getString(R.string.string_url));
+			new DownloadWebpageTask().execute(getString(R.string.string_url)
+					+ wordName + "%20");
 			// Intent intent = new Intent(this, ReadActivity.class);
 			// startActivity(intent);
+			
+			
 		} else {
 			System.out.println("No network connection available.");
 		}
 
+	}
+
+	private String getRandomWord() {
+		Random r = new Random();
+		int Low = 1;
+		int High = 2260;
+		int R = r.nextInt(High - Low) + Low;
+		String resourceName = "WN" + String.format("%04d", R);
+		return getString(getStringIdentifier(this, resourceName));
+	}
+
+	public static int getStringIdentifier(Context context, String name) {
+		return context.getResources().getIdentifier(name, "string",
+				context.getPackageName());
 	}
 
 	private class DownloadWebpageTask extends
@@ -110,10 +160,12 @@ public class MainActivity extends Activity {
 		// onPostExecute displays the results of the AsyncTask.
 		@Override
 		protected void onPostExecute(List<String> result) {
-			serviceText.setText(result.get(0));
-			serviceText2.setText(result.get(1));
-			serviceText3.setText(result.get(2));
-
+			serviceTextMain.setText(wordName);
+			MainActivity.this.result = result;
+			adapter.clear();
+			adapter.addAll(result);
+			adapter.notifyDataSetChanged();
+			
 		}
 
 		// Given a URL, establishes an HttpUrlConnection and retrieves
@@ -154,11 +206,7 @@ public class MainActivity extends Activity {
 		// Reads an InputStream and converts it to a String.
 		public List<String> readIt(InputStream stream, int len)
 				throws IOException, UnsupportedEncodingException {
-			// Reader reader = null;
-			// reader = new InputStreamReader(stream, "UTF-8");
-			// char[] buffer = new char[len];
-			// reader.read(buffer);
-			// return new String(buffer);
+
 			List<String> result = null;
 			try {
 				XmlPullParser parser = Xml.newPullParser();
@@ -233,4 +281,7 @@ public class MainActivity extends Activity {
 		}
 
 	}
+
+	
+
 }
