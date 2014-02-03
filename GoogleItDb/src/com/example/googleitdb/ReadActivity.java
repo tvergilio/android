@@ -27,7 +27,10 @@ public class ReadActivity extends Activity {
 		Cursor cur = db.query("table_word", null, null, null, null, null, null);
 		cur.moveToFirst();
 		while (cur.isAfterLast() == false) {
-			view.append("/n" + cur.getString(1));
+			view.append(" " + cur.getString(cur.getColumnIndex("name")) + " " 
+					+ cur.getString(cur.getColumnIndex("first_suggestion"))	+ " " 
+					+ cur.getString(cur.getColumnIndex("second_suggestion")) + " " 
+					+ cur.getString(cur.getColumnIndex("third_suggestion")));
 			cur.moveToNext();
 		}
 		cur.close();
