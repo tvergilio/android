@@ -87,7 +87,7 @@ public class MainActivity extends Activity {
 		db.setVersion(1);
 		db.setLocale(Locale.getDefault());
 		db.setLockingEnabled(true);
-		//db.execSQL("DROP TABLE IF EXISTS table_word");
+		db.execSQL("DROP TABLE IF EXISTS table_word");
 
 		final String CREATE_TABLE_WORD = "CREATE TABLE IF NOT EXISTS table_word ("
 				+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -96,6 +96,17 @@ public class MainActivity extends Activity {
 
 		db.execSQL(CREATE_TABLE_WORD);
 
+//		ContentValues values = new ContentValues();
+//		values.put("name", "rainy");
+//		values.put("first_suggestion", "rainy mood");
+//		values.put("second_suggestion", "rainy days and mondays");
+//		values.put("third_suggestion", "rainy night in Georgia");
+//
+//		try {
+//			db.insertOrThrow("table_word", null, values);
+//		} catch (Exception e) {
+//			// catch code
+//		}
 	}
 
 	@Override

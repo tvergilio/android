@@ -2303,6 +2303,9 @@ public final class R {
         public static final int action_settings=0x7f0508d5;
         public static final int app_name=0x7f0508d4;
         public static final int hello_world=0x7f0508d6;
+        public static final int preference_file_key=0x7f0508d9;
+        public static final int saved_word_name=0x7f0508da;
+        public static final int saved_word_suggestions=0x7f0508db;
         public static final int string_url=0x7f0508d8;
         public static final int title_activity_read=0x7f0508d7;
     }

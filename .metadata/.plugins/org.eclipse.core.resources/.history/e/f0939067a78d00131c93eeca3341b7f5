@@ -87,7 +87,7 @@ public class MainActivity extends Activity {
 		db.setVersion(1);
 		db.setLocale(Locale.getDefault());
 		db.setLockingEnabled(true);
-		//db.execSQL("DROP TABLE IF EXISTS table_word");
+		db.execSQL("DROP TABLE IF EXISTS table_word");
 
 		final String CREATE_TABLE_WORD = "CREATE TABLE IF NOT EXISTS table_word ("
 				+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -96,6 +96,17 @@ public class MainActivity extends Activity {
 
 		db.execSQL(CREATE_TABLE_WORD);
 
+//		ContentValues values = new ContentValues();
+//		values.put("name", "rainy");
+//		values.put("first_suggestion", "rainy mood");
+//		values.put("second_suggestion", "rainy days and mondays");
+//		values.put("third_suggestion", "rainy night in Georgia");
+//
+//		try {
+//			db.insertOrThrow("table_word", null, values);
+//		} catch (Exception e) {
+//			// catch code
+//		}
 	}
 
 	@Override
@@ -108,13 +119,10 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onPause() {		
 		super.onPause();
-		if (wordName != null && result != null && !result.isEmpty()) {
 		SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_file_key), MODE_PRIVATE);
 		SharedPreferences.Editor editor = sharedPref.edit();
 		editor.putString(getString(R.string.saved_word_name), wordName);
 		editor.putStringSet(getString(R.string.saved_word_suggestions), new HashSet<String>(result));
-		editor.commit();
-		}
 	}
 	
 	@Override
@@ -123,9 +131,7 @@ public class MainActivity extends Activity {
 		SharedPreferences sharedPref = getSharedPreferences(getString(R.string.preference_file_key), MODE_PRIVATE);
 		wordName = sharedPref.getString(getString(R.string.saved_word_name), wordName);
 		Set<String> resultSet = sharedPref.getStringSet(getString(R.string.saved_word_suggestions), null);
-		if (resultSet != null) {
-			result = new ArrayList<String>(resultSet);
-		}
+		result = new ArrayList<String>(resultSet);
 	}
 
 	public void buttonActivity(View view) {

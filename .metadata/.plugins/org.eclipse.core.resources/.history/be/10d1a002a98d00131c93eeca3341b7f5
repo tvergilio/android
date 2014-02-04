@@ -96,6 +96,17 @@ public class MainActivity extends Activity {
 
 		db.execSQL(CREATE_TABLE_WORD);
 
+//		ContentValues values = new ContentValues();
+//		values.put("name", "rainy");
+//		values.put("first_suggestion", "rainy mood");
+//		values.put("second_suggestion", "rainy days and mondays");
+//		values.put("third_suggestion", "rainy night in Georgia");
+//
+//		try {
+//			db.insertOrThrow("table_word", null, values);
+//		} catch (Exception e) {
+//			// catch code
+//		}
 	}
 
 	@Override
