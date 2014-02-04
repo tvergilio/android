@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
 	private ArrayAdapter<String> adapter;
 	public static final int RESULTS_MAX = 8;
 	public static final int LOW = 1;
-	public static final int HIGH = 2260; // number of word names in the
+	public static final int HIGH = 97; // 2260 number of word names in the
 											// names.xml resource
 	public static final String TABLE_NAME = "table_word";
 
@@ -96,16 +96,16 @@ public class MainActivity extends Activity {
 		db.setLockingEnabled(true);
 		// comment this out after initial load, just to avoid duplicates whilst
 		// debugging
-		db.execSQL("DROP TABLE IF EXISTS table_word");
+		//db.execSQL("DROP TABLE IF EXISTS table_word");
 
 		final String CREATE_TABLE_WORD = "CREATE TABLE IF NOT EXISTS table_word ("
 				+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ "name TEXT UNIQUE, first_suggestion TEXT, second_suggestion TEXT, third_suggestion TEXT, fourth_suggestion TEXT, "
-				+ "fifth_suggestion TEXT, sixth_suggestion TEXT, seventh_suggestion TEXT, eight_suggestion TEXT);";
+				+ "fifth_suggestion TEXT);";
 
 		db.execSQL(CREATE_TABLE_WORD);
 		// this needs to be run only once, at installation
-		populateDBInitial();
+		//populateDBInitial();
 
 	}
 
@@ -147,29 +147,22 @@ public class MainActivity extends Activity {
 	public void buttonActivity(View view) {
 		wordID = getRandomID();
 
-		String[] projection = { "name", "first_suggestion",
-				"second_suggestion", "third_suggestion", "fourth_suggestion",
-				"fifth_suggestion", "sixth_suggestion", "seventh_suggestion",
-				"eight_suggestion" };
-
 		String[] selectionArgs = { String.valueOf(wordID) };
 
-		Cursor c = db.query(TABLE_NAME, projection, "id=?", selectionArgs,
-				null, null, null);
-		if (c.moveToFirst()) {
-			wordName = c.getString(0);
-			serviceTextMain.setText(wordName);
-			this.result.add(c.getString(1));
-			this.result.add(c.getString(2));
-			this.result.add(c.getString(3));
-			this.result.add(c.getString(4));
-			this.result.add(c.getString(5));
-			this.result.add(c.getString(6));
-			this.result.add(c.getString(7));
-			this.result.add(c.getString(8));
+		Cursor c = db.rawQuery("select * from " + TABLE_NAME + " where CAST(id AS TEXT) = ?", selectionArgs);
 
-			adapter.clear();
-			adapter.addAll(this.result);
+		if (c.moveToFirst()) {
+			wordName = c.getString(1);
+			serviceTextMain.setText(wordName);
+			result.clear();
+			result.add(c.getString(2));
+			result.add(c.getString(3));
+			result.add(c.getString(4));
+			result.add(c.getString(5));
+			result.add(c.getString(6));
+			
+			//adapter.clear();
+			//adapter.addAll(result);
 			adapter.notifyDataSetChanged();
 		}
 	}
@@ -238,9 +231,7 @@ public class MainActivity extends Activity {
 			values.put("third_suggestion", result.get(2));
 			values.put("fourth_suggestion", result.get(3));
 			values.put("fifth_suggestion", result.get(4));
-			values.put("sixth_suggestion", result.get(5));
-			values.put("seventh_suggestion", result.get(6));
-			values.put("eight_suggestion", result.get(7));
+
 
 			try {
 				MainActivity.this.db.insertOrThrow("table_word", null, values);
