@@ -185,7 +185,8 @@ public class MainActivity extends Activity {
 					String name = getString(identifier);
 					if (name != null) {
 						new DownloadWebpageTask()
-								.execute(getString(R.string.string_url) + name);
+								.execute(name, getString(R.string.string_url) + name
+										+ "%20");
 					}
 				}
 			}
@@ -211,8 +212,8 @@ public class MainActivity extends Activity {
 		protected List<String> doInBackground(String... urls) {			
 			// params comes from the execute() call: params[0] is the url.
 			try {
-				name = urls[0].substring(getString(R.string.string_url).length());
-				return downloadUrl(urls[0] + "%20");
+				name = urls[0];
+				return downloadUrl(urls[1]);
 
 			} catch (IOException e) {
 				Log.d(DEBUG_TAG,

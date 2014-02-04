@@ -26,4 +26,10 @@
 <fullyQualifiedTypeName name="android.widget.RadioButton"/>
 <fullyQualifiedTypeName name="java.util.List"/>
 <fullyQualifiedTypeName name="android.provider.UserDictionary.Words"/>
+<fullyQualifiedTypeName name="com.example.googleitdb.MainActivity"/>
+<fullyQualifiedTypeName name="android.content.SharedPreferences"/>
+<fullyQualifiedTypeName name="android.content.SharedPreferences.Editor"/>
+<fullyQualifiedTypeName name="com.example.googleitdb.R.string"/>
+<fullyQualifiedTypeName name="java.util.HashSet"/>
+<fullyQualifiedTypeName name="android.database.Cursor"/>
 </qualifiedTypeNameHistroy>
