@@ -4,34 +4,43 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.DatabaseErrorHandler;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
+import android.util.Log;
+import android.util.Xml;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
 	private static final String DB_NAME = "words.db";
 	private static final int DATABASE_VERSION = 1;
-
+	private static final String DEBUG_TAG = "DatabaseHelper";
 	private String DB_PATH;
-	private Context myContext;
+	private Context context;
 	private SQLiteDatabase myDataBase;
-
+	private static final String ns = null;
 
 	public DatabaseHelper(Context context) {
 		super(context, DB_NAME, null, DATABASE_VERSION);
-		myContext = context;
+		this.context = context;
 		DB_PATH = context.getDatabasePath(DB_NAME).toString();
 	}
-
-
-
 
 	/**
 	 * Creates a empty database on the system and rewrites it with your own
@@ -102,7 +111,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	private void copyDataBase() throws IOException {
 
 		// Open your local db as the input stream
-		InputStream myInput = myContext.getAssets().open(DB_NAME);
+		InputStream myInput = context.getAssets().open(DB_NAME);
 
 		// Path to the just created empty db
 		String outFileName = DB_PATH;
@@ -153,17 +162,194 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	}
 
-
-
-
 	public Cursor rawQuery(String string, String[] selectionArgs) {
 		return myDataBase.rawQuery(string, selectionArgs);
 	}
 
-	// Add your public helper methods to access and get content from the
-	// database.
-	// You could return cursors by doing "return myDataBase.query(....)" so it'd
-	// be easy
-	// to you to create adapters for your views.
+	public void populateDBInitial() {
+		ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+		if (networkInfo != null && networkInfo.isConnected()) {
+			for (int i = MainActivity.LOW; i <= MainActivity.HIGH; i++) {
+				String resourceName = "WN" + String.format("%04d", i);
+				int identifier = getStringIdentifier(context, resourceName);
+				if (identifier != 0) {
+					String name = context.getString(identifier);
+					if (name != null) {
+						new DownloadWebpageTask()
+								.execute(context.getString(R.string.string_url) + name);
+					}
+				}
+			}
+
+		} else {
+			System.out.println("No network connection available.");
+		}
+	}
+
+
+
+	public static int getStringIdentifier(Context context, String name) {
+		return context.getResources().getIdentifier(name, "string",
+				context.getPackageName());
+	}
+
+	private class DownloadWebpageTask extends
+			AsyncTask<String, Void, List<String>> {
+
+		private String name;
+
+		@Override
+		protected List<String> doInBackground(String... urls) {
+			// params comes from the execute() call: params[0] is the url.
+			try {
+				name = urls[0].substring(context.getString(R.string.string_url)
+						.length());
+				return downloadUrl(urls[0] + "%20");
+
+			} catch (IOException e) {
+				Log.d(DEBUG_TAG,
+						"Unable to retrieve web page. URL may be invalid.");
+				return null;
+			}
+		}
+
+		// onPostExecute processes the results of the AsyncTask.
+		@Override
+		protected void onPostExecute(List<String> result) {
+			if (name != null && result != null && !result.isEmpty()) {
+				dbInsert(name, result);
+			}
+
+		}
+
+		private void dbInsert(String wordName, List<String> result) {
+			ContentValues values = new ContentValues();
+			values.put("name", wordName);
+			values.put("first_suggestion", result.get(0));
+			values.put("second_suggestion", result.get(1));
+			values.put("third_suggestion", result.get(2));
+			values.put("fourth_suggestion", result.get(3));
+			values.put("fifth_suggestion", result.get(4));
+
+			try {
+				myDataBase.insertOrThrow("table_word", null, values);
+			} catch (Exception e) {
+				// catch code
+			}
+		}
+
+		// Given a URL, establishes an HttpUrlConnection and retrieves
+		// the web page content as a InputStream, which it returns as
+		// a string.
+		private List<String> downloadUrl(String myurl) throws IOException {
+			InputStream is = null;
+			// Only display the first 500 characters of the retrieved
+			// web page content.
+			int len = 500;
+
+			try {
+				URL url = new URL(myurl);
+				HttpURLConnection conn = (HttpURLConnection) url
+						.openConnection();
+				conn.setReadTimeout(10000 /* milliseconds */);
+				conn.setConnectTimeout(15000 /* milliseconds */);
+				conn.setRequestMethod("GET");
+				conn.setDoInput(true);
+				// Starts the query
+				conn.connect();
+				int response = conn.getResponseCode();
+				Log.d(DEBUG_TAG, "The response is: " + response);
+				is = conn.getInputStream();
+
+				// Return a List<String>
+				return readIt(is, len);
+
+				// Makes sure that the InputStream is closed after the app is
+				// finished using it.
+			} finally {
+				if (is != null) {
+					is.close();
+				}
+			}
+		}
+
+		// Reads an InputStream and converts it to a String.
+		public List<String> readIt(InputStream stream, int len)
+				throws IOException, UnsupportedEncodingException {
+
+			List<String> result = null;
+			try {
+				XmlPullParser parser = Xml.newPullParser();
+				parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES,
+						false);
+				parser.setInput(stream, null);
+				parser.nextTag();
+				result = readFeed(parser);
+			} catch (XmlPullParserException e) {
+				e.printStackTrace();
+			} finally {
+				stream.close();
+			}
+			return result;
+		}
+
+		private List<String> readFeed(XmlPullParser parser)
+				throws XmlPullParserException, IOException {
+			List<String> entries = new ArrayList<String>();
+			parser.require(XmlPullParser.START_TAG, ns, "toplevel");
+			while (parser.next() != XmlPullParser.END_DOCUMENT) {
+				if (parser.getEventType() != XmlPullParser.START_TAG) {
+					continue;
+				}
+				String name = parser.getName();
+				// Starts by looking for the entry tag
+				if (name.equals("CompleteSuggestion")) {
+					parser.require(XmlPullParser.START_TAG, ns,
+							"CompleteSuggestion");
+					while (parser.next() != XmlPullParser.END_TAG) {
+						if (parser.getEventType() != XmlPullParser.START_TAG) {
+							continue;
+						}
+						String name1 = parser.getName();
+						// Starts by looking for the entry tag
+						if (name1.equals("suggestion")) {
+							String suggestion = readAttribute(parser);
+							entries.add(suggestion);
+						}
+
+					}
+				} else {
+					skip(parser);
+				}
+			}
+			return entries;
+		}
+
+		// For the suggestions, extracts their attributes.
+		private String readAttribute(XmlPullParser parser) throws IOException,
+				XmlPullParserException {
+			return parser.getAttributeValue(ns, "data");
+		}
+
+		private void skip(XmlPullParser parser) throws XmlPullParserException,
+				IOException {
+			if (parser.getEventType() != XmlPullParser.START_TAG) {
+				throw new IllegalStateException();
+			}
+			int depth = 1;
+			while (depth != 0) {
+				switch (parser.next()) {
+				case XmlPullParser.END_TAG:
+					depth--;
+					break;
+				case XmlPullParser.START_TAG:
+					depth++;
+					break;
+				}
+			}
+		}
+
+	}
 
 }

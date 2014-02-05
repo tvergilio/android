@@ -1,32 +1,20 @@
 package com.example.googleitdb;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import android.app.Activity;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.Xml;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
@@ -40,14 +28,20 @@ public class MainActivity extends Activity {
 	private String wordName;
 	private int wordID;
 	private List<String> result;
-	private static final String ns = null;
+	private Map<String, Integer> resultPoints;
 	private ListView listview;
-	private TextView listTextView;
+//	private TextView listTextView;
 	private ArrayAdapter<String> adapter;
 	public static final int RESULTS_MAX = 8;
 	public static final int LOW = 1;
-	public static final int HIGH = 97; // 2260 number of word names in the names.xml resource
+	public static final int HIGH = 97; // 2260 number of word names in the
+										// names.xml resource
 	public static final String TABLE_NAME = "table_word";
+	public static final int POINTS_FIRST = 10;
+	public static final int POINTS_SECOND = 7;
+	public static final int POINTS_THIRD = 5;
+	public static final int POINTS_FOURTH = 3;
+	public static final int POINTS_FIFTH = 0;
 
 	SQLiteDatabase db;
 	DatabaseHelper myDbHelper;
@@ -65,8 +59,9 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		result = new ArrayList<String>();
+		resultPoints = new HashMap<String, Integer>();		
 		listview = (ListView) findViewById(R.id.listview);
-		listTextView = (TextView) findViewById(R.id.list_text_view);
+//		listTextView = (TextView) findViewById(R.id.list_text_view);
 		adapter = new ArrayAdapter<String>(MainActivity.this,
 				android.R.layout.simple_list_item_1, result);
 
@@ -83,32 +78,35 @@ public class MainActivity extends Activity {
 
 		serviceTextMain = (TextView) findViewById(R.id.service_text_main);
 
-//		db = openOrCreateDatabase("words.db",
-//				SQLiteDatabase.CREATE_IF_NECESSARY, null);
-//		db.setVersion(1);
-//		db.setLocale(Locale.getDefault());
-//		db.setLockingEnabled(true);
-//		// comment this out after initial load, just to avoid duplicates whilst
-//		// debugging
-//		//db.execSQL("DROP TABLE IF EXISTS table_word");
-//
-//		final String CREATE_TABLE_WORD = "CREATE TABLE IF NOT EXISTS table_word ("
-//				+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-//				+ "name TEXT UNIQUE, first_suggestion TEXT, second_suggestion TEXT, third_suggestion TEXT, fourth_suggestion TEXT, "
-//				+ "fifth_suggestion TEXT);";
-//
-//		db.execSQL(CREATE_TABLE_WORD);
+		// db = openOrCreateDatabase("words.db",
+		// SQLiteDatabase.CREATE_IF_NECESSARY, null);
+		// db.setVersion(1);
+		// db.setLocale(Locale.getDefault());
+		// db.setLockingEnabled(true);
+		// // comment this out after initial load, just to avoid duplicates
+		// whilst
+		// // debugging
+		// //db.execSQL("DROP TABLE IF EXISTS table_word");
+		//
+		// final String CREATE_TABLE_WORD =
+		// "CREATE TABLE IF NOT EXISTS table_word ("
+		// + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+		// +
+		// "name TEXT UNIQUE, first_suggestion TEXT, second_suggestion TEXT, third_suggestion TEXT, fourth_suggestion TEXT, "
+		// + "fifth_suggestion TEXT);";
+		//
+		// db.execSQL(CREATE_TABLE_WORD);
 		// this needs to be run only once, at installation
-		//populateDBInitial();
+		// populateDBInitial();
 		myDbHelper = new DatabaseHelper(this);
-        try {
-        	myDbHelper.createDataBase();
-        	myDbHelper.openDataBase();
-        } catch (IOException ioe) {
-        	throw new Error("Unable to create database");
-        } catch (SQLException sqle) {
-        	throw new Error("SQL Exception");
-        }		
+		try {
+			myDbHelper.createDataBase();
+			myDbHelper.openDataBase();
+		} catch (IOException ioe) {
+			throw new Error("Unable to create database");
+		} catch (SQLException sqle) {
+			throw new Error("SQL Exception");
+		}
 
 	}
 
@@ -148,213 +146,46 @@ public class MainActivity extends Activity {
 	}
 
 	public void buttonActivity(View view) {
-		wordID = getRandomID();
+		wordID = getRandomID(HIGH, LOW);
 
 		String[] selectionArgs = { String.valueOf(wordID) };
 
-		Cursor c = myDbHelper.rawQuery("select * from " + TABLE_NAME + " where CAST(_id AS TEXT) = ?", selectionArgs);
+		Cursor c = myDbHelper.rawQuery("select * from " + TABLE_NAME
+				+ " where CAST(_id AS TEXT) = ?", selectionArgs);
 
 		if (c.moveToFirst()) {
 			wordName = c.getString(1);
 			serviceTextMain.setText(wordName);
-			result.clear();
-			result.add(c.getString(2));
-			result.add(c.getString(3));
-			result.add(c.getString(4));
-			result.add(c.getString(5));
-			result.add(c.getString(6));
+			resultPoints.clear();
+			resultPoints.put(c.getString(2), POINTS_FIRST);
+			resultPoints.put(c.getString(3), POINTS_SECOND);
+			resultPoints.put(c.getString(4), POINTS_THIRD);
+			resultPoints.put(c.getString(5), POINTS_FOURTH);
+			resultPoints.put(c.getString(6), POINTS_FIFTH);
+			populateResultsList();
 			
-			adapter.clear();
-			adapter.addAll(result);
-			adapter.notifyDataSetChanged();
 		}
 	}
 
-	private void populateDBInitial() {
-		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-		if (networkInfo != null && networkInfo.isConnected()) {
-			for (int i = LOW; i <= HIGH; i++) {
-				String resourceName = "WN" + String.format("%04d", i);
-				int identifier = getStringIdentifier(this, resourceName);
-				if (identifier != 0) {
-					String name = getString(identifier);
-					if (name != null) {
-						new DownloadWebpageTask()
-								.execute(getString(R.string.string_url) + name);
-					}
-				}
-			}
-
-		} else {
-			System.out.println("No network connection available.");
+	private void populateResultsList() {
+		result.clear();
+		while (!resultPoints.isEmpty()) {
+			int index = resultPoints.size() == 1 ? 0 : getRandomID(resultPoints.size() - 1, 0);
+			Object[] keys = resultPoints.keySet().toArray();
+			String key = (String) keys[index]; 
+			result.add(key);
+			resultPoints.remove(key);
 		}
+
+		adapter.clear();
+		adapter.addAll(result);
+		adapter.notifyDataSetChanged();
+		
 	}
 
-	private int getRandomID() {
+	private int getRandomID(int high, int low) {
 		Random r = new Random();
-		return r.nextInt(HIGH - LOW) + LOW;
-	}
-
-	public static int getStringIdentifier(Context context, String name) {
-		return context.getResources().getIdentifier(name, "string",
-				context.getPackageName());
-	}
-
-	private class DownloadWebpageTask extends AsyncTask<String, Void, List<String>> {
-		private String name;
-		@Override
-		protected List<String> doInBackground(String... urls) {			
-			// params comes from the execute() call: params[0] is the url.
-			try {
-				name = urls[0].substring(getString(R.string.string_url).length());
-				return downloadUrl(urls[0] + "%20");
-
-			} catch (IOException e) {
-				Log.d(DEBUG_TAG,
-						"Unable to retrieve web page. URL may be invalid.");
-				return null;
-			}
-		}
-
-		// onPostExecute processes the results of the AsyncTask.
-		@Override
-		protected void onPostExecute(List<String> result) {
-			if (name != null && result != null && !result.isEmpty()) {
-				dbInsert(name, result);
-			}
-
-		}
-
-		private void dbInsert(String wordName, List<String> result) {
-			ContentValues values = new ContentValues();
-			values.put("name", wordName);
-			values.put("first_suggestion", result.get(0));
-			values.put("second_suggestion", result.get(1));
-			values.put("third_suggestion", result.get(2));
-			values.put("fourth_suggestion", result.get(3));
-			values.put("fifth_suggestion", result.get(4));
-
-
-			try {
-				MainActivity.this.db.insertOrThrow("table_word", null, values);
-			} catch (Exception e) {
-				// catch code
-			}
-		}
-
-		// Given a URL, establishes an HttpUrlConnection and retrieves
-		// the web page content as a InputStream, which it returns as
-		// a string.
-		private List<String> downloadUrl(String myurl) throws IOException {
-			InputStream is = null;
-			// Only display the first 500 characters of the retrieved
-			// web page content.
-			int len = 500;
-
-			try {
-				URL url = new URL(myurl);
-				HttpURLConnection conn = (HttpURLConnection) url
-						.openConnection();
-				conn.setReadTimeout(10000 /* milliseconds */);
-				conn.setConnectTimeout(15000 /* milliseconds */);
-				conn.setRequestMethod("GET");
-				conn.setDoInput(true);
-				// Starts the query
-				conn.connect();
-				int response = conn.getResponseCode();
-				Log.d(DEBUG_TAG, "The response is: " + response);
-				is = conn.getInputStream();
-
-				// Return a List<String>
-				return readIt(is, len);
-
-				// Makes sure that the InputStream is closed after the app is
-				// finished using it.
-			} finally {
-				if (is != null) {
-					is.close();
-				}
-			}
-		}
-
-		// Reads an InputStream and converts it to a String.
-		public List<String> readIt(InputStream stream, int len)
-				throws IOException, UnsupportedEncodingException {
-
-			List<String> result = null;
-			try {
-				XmlPullParser parser = Xml.newPullParser();
-				parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES,
-						false);
-				parser.setInput(stream, null);
-				parser.nextTag();
-				result = readFeed(parser);
-			} catch (XmlPullParserException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-				stream.close();
-			}
-			return result;
-		}
-
-		private List<String> readFeed(XmlPullParser parser)
-				throws XmlPullParserException, IOException {
-			List<String> entries = new ArrayList<String>();
-			parser.require(XmlPullParser.START_TAG, ns, "toplevel");
-			while (parser.next() != XmlPullParser.END_DOCUMENT) {
-				if (parser.getEventType() != XmlPullParser.START_TAG) {
-					continue;
-				}
-				String name = parser.getName();
-				// Starts by looking for the entry tag
-				if (name.equals("CompleteSuggestion")) {
-					parser.require(XmlPullParser.START_TAG, ns,
-							"CompleteSuggestion");
-					while (parser.next() != XmlPullParser.END_TAG) {
-						if (parser.getEventType() != XmlPullParser.START_TAG) {
-							continue;
-						}
-						String name1 = parser.getName();
-						// Starts by looking for the entry tag
-						if (name1.equals("suggestion")) {
-							String suggestion = readAttribute(parser);
-							entries.add(suggestion);
-						}
-
-					}
-				} else {
-					skip(parser);
-				}
-			}
-			return entries;
-		}
-
-		// For the suggestions, extracts their attributes.
-		private String readAttribute(XmlPullParser parser) throws IOException,
-				XmlPullParserException {
-			return parser.getAttributeValue(ns, "data");
-		}
-
-		private void skip(XmlPullParser parser) throws XmlPullParserException,
-				IOException {
-			if (parser.getEventType() != XmlPullParser.START_TAG) {
-				throw new IllegalStateException();
-			}
-			int depth = 1;
-			while (depth != 0) {
-				switch (parser.next()) {
-				case XmlPullParser.END_TAG:
-					depth--;
-					break;
-				case XmlPullParser.START_TAG:
-					depth++;
-					break;
-				}
-			}
-		}
-
+		return r.nextInt(high - low) + low;
 	}
 
 }
