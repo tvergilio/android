@@ -4,3 +4,7 @@
 1391518095487	Extract method 'populateDatabase'
 1391518163657	Rename method 'populateDatabase'
 1391526901805	Extract method 'populateDBInitial'
+1391604906649	Rename resource 'fullnames.xml'
+1391604975510	Rename resource 'fullnames.txt'
+1391604996893	Rename resource 'fullnames.doc'
+1391607273937	Rename type 'DatabaseManager'

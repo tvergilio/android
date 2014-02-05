@@ -139,12 +139,13 @@ public final class R {
         public static final int WN010=0x7f050009;
         public static final int action_settings=0x7f050062;
         public static final int app_name=0x7f050061;
+        public static final int get_word=0x7f050064;
         public static final int hello_world=0x7f050063;
-        public static final int preference_file_key=0x7f050066;
-        public static final int saved_word_name=0x7f050067;
-        public static final int saved_word_suggestions=0x7f050068;
-        public static final int string_url=0x7f050065;
-        public static final int title_activity_read=0x7f050064;
+        public static final int preference_file_key=0x7f050067;
+        public static final int saved_word_name=0x7f050068;
+        public static final int saved_word_suggestions=0x7f050069;
+        public static final int string_url=0x7f050066;
+        public static final int title_activity_read=0x7f050065;
     }
     public static final class style {
         /** 

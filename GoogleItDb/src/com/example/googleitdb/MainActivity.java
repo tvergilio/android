@@ -2,16 +2,12 @@ package com.example.googleitdb;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 
@@ -19,12 +15,11 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import android.app.Activity;
-import android.app.ListActivity;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -36,7 +31,6 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -52,11 +46,11 @@ public class MainActivity extends Activity {
 	private ArrayAdapter<String> adapter;
 	public static final int RESULTS_MAX = 8;
 	public static final int LOW = 1;
-	public static final int HIGH = 97; // 2260 number of word names in the
-											// names.xml resource
+	public static final int HIGH = 97; // 2260 number of word names in the names.xml resource
 	public static final String TABLE_NAME = "table_word";
 
 	SQLiteDatabase db;
+	DatabaseHelper myDbHelper;
 
 	public List<String> getResult() {
 		return result;
@@ -89,23 +83,32 @@ public class MainActivity extends Activity {
 
 		serviceTextMain = (TextView) findViewById(R.id.service_text_main);
 
-		db = openOrCreateDatabase("words.db",
-				SQLiteDatabase.CREATE_IF_NECESSARY, null);
-		db.setVersion(1);
-		db.setLocale(Locale.getDefault());
-		db.setLockingEnabled(true);
-		// comment this out after initial load, just to avoid duplicates whilst
-		// debugging
-		//db.execSQL("DROP TABLE IF EXISTS table_word");
-
-		final String CREATE_TABLE_WORD = "CREATE TABLE IF NOT EXISTS table_word ("
-				+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-				+ "name TEXT UNIQUE, first_suggestion TEXT, second_suggestion TEXT, third_suggestion TEXT, fourth_suggestion TEXT, "
-				+ "fifth_suggestion TEXT);";
-
-		db.execSQL(CREATE_TABLE_WORD);
+//		db = openOrCreateDatabase("words.db",
+//				SQLiteDatabase.CREATE_IF_NECESSARY, null);
+//		db.setVersion(1);
+//		db.setLocale(Locale.getDefault());
+//		db.setLockingEnabled(true);
+//		// comment this out after initial load, just to avoid duplicates whilst
+//		// debugging
+//		//db.execSQL("DROP TABLE IF EXISTS table_word");
+//
+//		final String CREATE_TABLE_WORD = "CREATE TABLE IF NOT EXISTS table_word ("
+//				+ "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+//				+ "name TEXT UNIQUE, first_suggestion TEXT, second_suggestion TEXT, third_suggestion TEXT, fourth_suggestion TEXT, "
+//				+ "fifth_suggestion TEXT);";
+//
+//		db.execSQL(CREATE_TABLE_WORD);
 		// this needs to be run only once, at installation
 		//populateDBInitial();
+		myDbHelper = new DatabaseHelper(this);
+        try {
+        	myDbHelper.createDataBase();
+        	myDbHelper.openDataBase();
+        } catch (IOException ioe) {
+        	throw new Error("Unable to create database");
+        } catch (SQLException sqle) {
+        	throw new Error("SQL Exception");
+        }		
 
 	}
 
@@ -149,7 +152,7 @@ public class MainActivity extends Activity {
 
 		String[] selectionArgs = { String.valueOf(wordID) };
 
-		Cursor c = db.rawQuery("select * from " + TABLE_NAME + " where CAST(id AS TEXT) = ?", selectionArgs);
+		Cursor c = myDbHelper.rawQuery("select * from " + TABLE_NAME + " where CAST(_id AS TEXT) = ?", selectionArgs);
 
 		if (c.moveToFirst()) {
 			wordName = c.getString(1);
@@ -161,8 +164,8 @@ public class MainActivity extends Activity {
 			result.add(c.getString(5));
 			result.add(c.getString(6));
 			
-			//adapter.clear();
-			//adapter.addAll(result);
+			adapter.clear();
+			adapter.addAll(result);
 			adapter.notifyDataSetChanged();
 		}
 	}

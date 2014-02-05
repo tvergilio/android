@@ -1,7 +1,7 @@
-<!--
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
 
+<resources>
+<!--
     <string name="WN0001">the</string>
     <string name="WN0002">be</string>
     <string name="WN0003">of</string>
@@ -2262,6 +2262,5 @@
     <string name="WN2258">pronunciation</string>
     <string name="WN2259">beak</string>
     <string name="WN2260">plural</string>
-
-</resources>
--->
+    -->
+    </resources>
