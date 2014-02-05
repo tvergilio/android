@@ -9,3 +9,5 @@
 1391604996893	Rename resource 'fullnames.doc'
 1391607273937	Rename type 'DatabaseManager'
 1391611227554	Rename field 'myContext'
+1391638684907	Extract method 'setScore'
+1391639136457	Extract method 'getNextWord'

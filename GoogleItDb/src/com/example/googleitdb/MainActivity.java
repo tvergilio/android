@@ -27,14 +27,16 @@ public class MainActivity extends Activity {
 	private TextView serviceTextMain;
 	private String wordName;
 	private int wordID;
+	private TextView score;
+	private int points;
 	private List<String> result;
 	private Map<String, Integer> resultPoints;
 	private ListView listview;
-//	private TextView listTextView;
+	// private TextView listTextView;
 	private ArrayAdapter<String> adapter;
 	public static final int RESULTS_MAX = 8;
 	public static final int LOW = 1;
-	public static final int HIGH = 97; // 2260 number of word names in the
+	public static final int HIGH = 300; // 2260 number of word names in the
 										// names.xml resource
 	public static final String TABLE_NAME = "table_word";
 	public static final int POINTS_FIRST = 10;
@@ -59,9 +61,11 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		result = new ArrayList<String>();
-		resultPoints = new HashMap<String, Integer>();		
+		resultPoints = new HashMap<String, Integer>();
 		listview = (ListView) findViewById(R.id.listview);
-//		listTextView = (TextView) findViewById(R.id.list_text_view);
+		score = (TextView) findViewById(R.id.score);
+		setScore(points);
+		// listTextView = (TextView) findViewById(R.id.list_text_view);
 		adapter = new ArrayAdapter<String>(MainActivity.this,
 				android.R.layout.simple_list_item_1, result);
 
@@ -71,37 +75,22 @@ public class MainActivity extends Activity {
 			public void onItemClick(AdapterView<?> parent, final View view,
 					int position, long id) {
 				final String item = (String) parent.getItemAtPosition(position);
+				if (!resultPoints.isEmpty()) {
+					points += resultPoints.get(item);
+					setScore(points);
+					getNextWord();
+				}
 
-			}
+			}					
 
 		});
 
 		serviceTextMain = (TextView) findViewById(R.id.service_text_main);
-
-		// db = openOrCreateDatabase("words.db",
-		// SQLiteDatabase.CREATE_IF_NECESSARY, null);
-		// db.setVersion(1);
-		// db.setLocale(Locale.getDefault());
-		// db.setLockingEnabled(true);
-		// // comment this out after initial load, just to avoid duplicates
-		// whilst
-		// // debugging
-		// //db.execSQL("DROP TABLE IF EXISTS table_word");
-		//
-		// final String CREATE_TABLE_WORD =
-		// "CREATE TABLE IF NOT EXISTS table_word ("
-		// + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-		// +
-		// "name TEXT UNIQUE, first_suggestion TEXT, second_suggestion TEXT, third_suggestion TEXT, fourth_suggestion TEXT, "
-		// + "fifth_suggestion TEXT);";
-		//
-		// db.execSQL(CREATE_TABLE_WORD);
-		// this needs to be run only once, at installation
-		// populateDBInitial();
 		myDbHelper = new DatabaseHelper(this);
 		try {
 			myDbHelper.createDataBase();
 			myDbHelper.openDataBase();
+
 		} catch (IOException ioe) {
 			throw new Error("Unable to create database");
 		} catch (SQLException sqle) {
@@ -142,10 +131,19 @@ public class MainActivity extends Activity {
 				getString(R.string.saved_word_suggestions), null);
 		if (resultSet != null) {
 			result = new ArrayList<String>(resultSet);
+			adapter.notifyDataSetChanged();
 		}
 	}
 
 	public void buttonActivity(View view) {
+		// this will never be here after, just using it to populate the
+		// database.
+		// myDbHelper.populateDBInitial();
+
+		getNextWord();
+	}
+
+	private void getNextWord() {
 		wordID = getRandomID(HIGH, LOW);
 
 		String[] selectionArgs = { String.valueOf(wordID) };
@@ -163,29 +161,40 @@ public class MainActivity extends Activity {
 			resultPoints.put(c.getString(5), POINTS_FOURTH);
 			resultPoints.put(c.getString(6), POINTS_FIFTH);
 			populateResultsList();
-			
+
 		}
 	}
 
 	private void populateResultsList() {
 		result.clear();
-		while (!resultPoints.isEmpty()) {
-			int index = resultPoints.size() == 1 ? 0 : getRandomID(resultPoints.size() - 1, 0);
-			Object[] keys = resultPoints.keySet().toArray();
-			String key = (String) keys[index]; 
+		// clone resultPoints
+		Map<String, Integer> clone = new HashMap<String, Integer>();
+		for (String key : resultPoints.keySet()) {
+			clone.put(key, resultPoints.get(key));
+		}
+		while (!clone.isEmpty()) {
+			int index = clone.size() == 1 ? 0
+					: getRandomID(clone.size() - 1, 0);
+			Object[] keys = clone.keySet().toArray();
+			String key = (String) keys[index];
 			result.add(key);
-			resultPoints.remove(key);
+			clone.remove(key);
 		}
 
-		adapter.clear();
-		adapter.addAll(result);
+		// adapter.clear();
+		// adapter.addAll(result);
 		adapter.notifyDataSetChanged();
-		
+
 	}
 
 	private int getRandomID(int high, int low) {
 		Random r = new Random();
 		return r.nextInt(high - low) + low;
 	}
+	
+	private void setScore(int points) {
+		score.setText("score: " + String.valueOf(points));
+	}
+	
 
 }
