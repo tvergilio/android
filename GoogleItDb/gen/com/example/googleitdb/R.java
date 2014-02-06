@@ -24,11 +24,9 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int action_settings=0x7f080006;
-        public static final int button1=0x7f080004;
-        public static final int list_text_view=0x7f080003;
-        public static final int listview=0x7f080002;
-        public static final int read_text=0x7f080005;
+        public static final int action_settings=0x7f080004;
+        public static final int button1=0x7f080002;
+        public static final int read_text=0x7f080003;
         public static final int score=0x7f080000;
         public static final int service_text_main=0x7f080001;
     }
@@ -346,6 +344,7 @@ public final class R {
         public static final int get_word=0x7f05012f;
         public static final int hello_world=0x7f05012e;
         public static final int preference_file_key=0x7f050132;
+        public static final int saved_points=0x7f050135;
         public static final int saved_word_name=0x7f050133;
         public static final int saved_word_suggestions=0x7f050134;
         public static final int string_url=0x7f050131;

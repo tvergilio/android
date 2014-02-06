@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.Set;
 
 import android.app.Activity;
+import android.app.ListActivity;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -17,22 +18,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends ListActivity {
 	private static final String DEBUG_TAG = "MainActivity";
 	private TextView serviceTextMain;
 	private String wordName;
 	private int wordID;
 	private TextView score;
-	private int points;
-	private List<String> result;
+	private int points;	
 	private Map<String, Integer> resultPoints;
-	private ListView listview;
-	// private TextView listTextView;
 	private ArrayAdapter<String> adapter;
 	public static final int RESULTS_MAX = 8;
 	public static final int LOW = 1;
@@ -48,43 +47,18 @@ public class MainActivity extends Activity {
 	SQLiteDatabase db;
 	DatabaseHelper myDbHelper;
 
-	public List<String> getResult() {
-		return result;
-	}
-
-	public void setResult(List<String> result) {
-		this.result = result;
-	}
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		result = new ArrayList<String>();
+		List<String> result = new ArrayList<String>();
 		resultPoints = new HashMap<String, Integer>();
-		listview = (ListView) findViewById(R.id.listview);
 		score = (TextView) findViewById(R.id.score);
 		setScore(points);
-		// listTextView = (TextView) findViewById(R.id.list_text_view);
-		adapter = new ArrayAdapter<String>(MainActivity.this,
-				android.R.layout.simple_list_item_1, result);
-
-		listview.setAdapter(adapter);
-		listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-			@Override
-			public void onItemClick(AdapterView<?> parent, final View view,
-					int position, long id) {
-				final String item = (String) parent.getItemAtPosition(position);
-				if (!resultPoints.isEmpty()) {
-					points += resultPoints.get(item);
-					setScore(points);
-					getNextWord();
-				}
-
-			}					
-
-		});
-
+		adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, result);
+		getListView().setAdapter(adapter);
+		getListView().setTextFilterEnabled(true);
 		serviceTextMain = (TextView) findViewById(R.id.service_text_main);
 		myDbHelper = new DatabaseHelper(this);
 		try {
@@ -99,6 +73,17 @@ public class MainActivity extends Activity {
 
 	}
 
+@Override
+protected void onListItemClick(ListView l, View v, int position, long id) {
+	super.onListItemClick(l, v, position, id);
+	Object o = adapter.getItem(position);
+    String item = o.toString();
+    if (!resultPoints.isEmpty()) {
+		points += resultPoints.get(item);		
+		getNextWord();
+	}
+}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -109,13 +94,18 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (wordName != null && result != null && !result.isEmpty()) {
+		if (wordName != null && adapter != null && !adapter.isEmpty()) {
 			SharedPreferences sharedPref = getSharedPreferences(
 					getString(R.string.preference_file_key), MODE_PRIVATE);
 			SharedPreferences.Editor editor = sharedPref.edit();
 			editor.putString(getString(R.string.saved_word_name), wordName);
+			HashSet<String> resultsToPersist = new HashSet<String>();
+				for (int i = 0; i < adapter.getCount(); i++) {
+					resultsToPersist.add(adapter.getItem(i));
+				}
 			editor.putStringSet(getString(R.string.saved_word_suggestions),
-					new HashSet<String>(result));
+					resultsToPersist);
+			editor.putInt(getString(R.string.saved_points), points);
 			editor.commit();
 		}
 	}
@@ -127,12 +117,15 @@ public class MainActivity extends Activity {
 				getString(R.string.preference_file_key), MODE_PRIVATE);
 		wordName = sharedPref.getString(getString(R.string.saved_word_name),
 				wordName);
-		Set<String> resultSet = sharedPref.getStringSet(
+		Set<String> resultsPersisted = sharedPref.getStringSet(				
 				getString(R.string.saved_word_suggestions), null);
-		if (resultSet != null) {
-			result = new ArrayList<String>(resultSet);
+		if (resultsPersisted != null) {
+			adapter.clear();
+			adapter.addAll(new ArrayList<String>(resultsPersisted));
 			adapter.notifyDataSetChanged();
 		}
+		points = sharedPref.getInt(getString(R.string.saved_points), points);
+		setScore(points);
 	}
 
 	public void buttonActivity(View view) {
@@ -162,11 +155,13 @@ public class MainActivity extends Activity {
 			resultPoints.put(c.getString(6), POINTS_FIFTH);
 			populateResultsList();
 
+		} else {
+			getNextWord();
 		}
 	}
 
 	private void populateResultsList() {
-		result.clear();
+		adapter.clear();
 		// clone resultPoints
 		Map<String, Integer> clone = new HashMap<String, Integer>();
 		for (String key : resultPoints.keySet()) {
@@ -177,13 +172,14 @@ public class MainActivity extends Activity {
 					: getRandomID(clone.size() - 1, 0);
 			Object[] keys = clone.keySet().toArray();
 			String key = (String) keys[index];
-			result.add(key);
+			adapter.add(key);
 			clone.remove(key);
 		}
 
-		// adapter.clear();
-		// adapter.addAll(result);
+//		adapter.clear();
+//		adapter.addAll(result);
 		adapter.notifyDataSetChanged();
+		setScore(points);
 
 	}
 

@@ -16,12 +16,9 @@
          />
 
     <ListView
-        android:id="@+id/listview"
+        android:id="@id/android:list"
         android:layout_gravity="center_horizontal" />
 
-    <TextView 
-		android:id="@+id/list_text_view"
-		/>
 
     <Button
         android:id="@+id/button1"
