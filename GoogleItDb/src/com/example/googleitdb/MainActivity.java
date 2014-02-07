@@ -16,6 +16,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.view.Menu;
 import android.view.View;
@@ -50,6 +51,11 @@ public class MainActivity extends ListActivity {
 	DatabaseHelper myDbHelper;
 
 	private int pointsJustEarned;
+	private CountDownTimer countdownTimer;
+	private boolean timerHasStarted = false;
+	private TextView timerView;
+	private final long startTime = 10 * 1000;
+	private final long interval = 1 * 100;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -64,6 +70,24 @@ public class MainActivity extends ListActivity {
 		getListView().setAdapter(adapter);
 		getListView().setTextFilterEnabled(true);
 		serviceTextMain = (TextView) findViewById(R.id.service_text_main);
+		timerView = (TextView) findViewById(R.id.timer);
+		countdownTimer = new CountDownTimer(startTime, interval) {
+
+			@Override
+			public void onFinish() {
+				timerView.setText("time's up!");
+				timerHasStarted = false;
+			}
+
+			@Override
+			public void onTick(long millisUntilFinished) {
+				timerView.setText("time: "
+						+ (int) (long) millisUntilFinished / 100);
+
+			}
+
+		};
+
 		myDbHelper = new DatabaseHelper(this);
 		try {
 			myDbHelper.createDataBase();
@@ -80,21 +104,25 @@ public class MainActivity extends ListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
+		// check if time has elapsed
+		if (!timerHasStarted) {
+			return;
+		}
 		Object o = adapter.getItem(position);
 		String item = o.toString();
 		if (!resultPoints.isEmpty()) {
 			pointsJustEarned = resultPoints.get(item);
 			points += pointsJustEarned;
-			final Toast toast = Toast.makeText(this, "That's worth "
-					+ pointsJustEarned + " points.", Toast.LENGTH_SHORT);
-			toast.show();
-			Handler handler = new Handler();
-			handler.postDelayed(new Runnable() {
-				@Override
-				public void run() {
-					toast.cancel();
-				}
-			}, 500);
+//			final Toast toast = Toast.makeText(this, "That's worth "
+//					+ pointsJustEarned + " points.", Toast.LENGTH_SHORT);
+//			toast.show();
+//			Handler handler = new Handler();
+//			handler.postDelayed(new Runnable() {
+//				@Override
+//				public void run() {
+//					toast.cancel();
+//				}
+//			}, 500);
 			getNextWord();
 		}
 	}
@@ -147,7 +175,7 @@ public class MainActivity extends ListActivity {
 		// this will never be here after, just using it to populate the
 		// database.
 		// myDbHelper.populateDBInitial();
-
+		timerView.setText(R.string.timer);
 		getNextWord();
 	}
 
@@ -169,10 +197,17 @@ public class MainActivity extends ListActivity {
 			resultPoints.put(c.getString(5), POINTS_FOURTH);
 			resultPoints.put(c.getString(6), POINTS_FIFTH);
 			populateResultsList();
+			startTimer();
 
 		} else {
 			getNextWord();
 		}
+	}
+
+	private void startTimer() {
+		countdownTimer.cancel();
+		countdownTimer.start();
+		timerHasStarted = true;
 	}
 
 	private void populateResultsList() {
