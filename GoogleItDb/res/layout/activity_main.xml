@@ -9,14 +9,22 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:padding="10dip" >
-        <TableRow>
+        <TableRow
+            android:id="@+id/tableRow1"
+        	android:layout_width="wrap_content"
+        	android:layout_height="wrap_content"
+        	android:padding="5dip">
             <TextView
                 android:id="@+id/score"
-                android:textSize="30sp" />
+                android:textSize="30sp"
+                android:gravity="left"
+                android:paddingRight="40dip"
+                   />
 
             <TextView
                 android:id="@+id/timer"
           		android:textSize="30sp"
+          		android:gravity="right"
                 android:text="@string/timer" />
         </TableRow>
     </TableLayout>
@@ -24,10 +32,14 @@
     <TextView
         android:id="@+id/service_text_main"
         android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:textSize="30sp" />
 
     <ListView
         android:id="@id/android:list"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal" />
 
     <Button

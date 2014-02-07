@@ -1,0 +1,56 @@
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_gravity="center"
+    android:stretchColumns="1" >
+
+    <TableRow>
+
+        <TextView
+            android:id="@+id/score"
+            android:layout_column="0"
+            android:textSize="30sp" />
+
+        <TextView
+            android:id="@+id/timer"
+            android:layout_column="2"
+            android:text="@string/timer"
+            android:textSize="30sp" />
+    </TableRow>
+
+    <TableRow>
+
+        <TextView
+            android:id="@+id/service_text_main"
+            android:layout_column="1"
+            android:layout_gravity="center_horizontal"
+            android:textSize="30sp" />
+    </TableRow>
+
+    <TableRow>
+
+        <ListView
+            android:id="@id/android:list"
+            android:layout_column="1"
+            android:layout_gravity="center_horizontal" />
+    </TableRow>
+
+    <TableRow>
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_gravity="center_horizontal"
+            android:onClick="buttonActivity"
+            android:text="@string/get_word" />
+    </TableRow>
+
+    <TableRow>
+    </TableRow>
+
+    <TableRow>
+    </TableRow>
+
+</TableLayout>
