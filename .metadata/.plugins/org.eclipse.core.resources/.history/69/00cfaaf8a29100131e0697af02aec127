@@ -28,7 +28,7 @@ import android.util.Xml;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-	private static final String DB_NAME = "uk_words.db"; //change it to use the US one
+	private static final String DB_NAME = "uk_words.db";
 	private static final String TABLE_NAME_WORD = "table_word";
 	private static final String TABLE_NAME_FORENAME = "table_forename";
 	private static final int DATABASE_VERSION = 1;
@@ -39,8 +39,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	private static final String ns = null;
 	public static final String RESOURCE_PREFIX_WORDS = "WN";
 	public static final String RESOURCE_PREFIX_FORENAMES = "WFN";
-	public static final int POPULATE_DB_START = 6;
-	public static final int POPULATE_DB_END = 476;
+	public static final int POPULATE_DB_START = 0;
+	public static final int POPULATE_DB_END = 2;
 
 	public DatabaseHelper(Context context) {
 		super(context, DB_NAME, null, DATABASE_VERSION);
@@ -144,7 +144,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		// Open the database
 		String myPath = DB_PATH;
 		myDataBase = SQLiteDatabase.openDatabase(myPath, null,
-				SQLiteDatabase.OPEN_READONLY);
+				SQLiteDatabase.OPEN_READWRITE);
 		//OPEN_READWRITE for populating the DB
 
 	}

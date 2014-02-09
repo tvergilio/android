@@ -1539,13 +1539,14 @@ public final class R {
         public static final int app_name=0x7f0605c5;
         public static final int get_word=0x7f0605c8;
         public static final int hello_world=0x7f0605c7;
-        public static final int help=0x7f0605d1;
-        public static final int new_game=0x7f0605d0;
-        public static final int preference_file_key=0x7f0605cc;
-        public static final int saved_points=0x7f0605cf;
-        public static final int saved_word_name=0x7f0605cd;
-        public static final int saved_word_suggestions=0x7f0605ce;
+        public static final int help=0x7f0605d2;
+        public static final int new_game=0x7f0605d1;
+        public static final int preference_file_key=0x7f0605cd;
+        public static final int saved_points=0x7f0605d0;
+        public static final int saved_word_name=0x7f0605ce;
+        public static final int saved_word_suggestions=0x7f0605cf;
         public static final int string_url=0x7f0605cb;
+        public static final int string_url_uk=0x7f0605cc;
         public static final int timer=0x7f0605ca;
         public static final int title_activity_read=0x7f0605c9;
     }
