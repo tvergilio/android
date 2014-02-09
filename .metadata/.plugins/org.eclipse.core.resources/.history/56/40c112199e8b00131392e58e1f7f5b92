@@ -1,7 +1,0 @@
-package com.tvergilio.googleit;
-
-import android.os.AsyncTask;
-
-public class UpdateWordTask extends AsyncTask<Params, Progress, Result> {
-
-}

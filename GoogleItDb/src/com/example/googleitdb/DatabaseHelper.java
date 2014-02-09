@@ -29,12 +29,18 @@ import android.util.Xml;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
 	private static final String DB_NAME = "words.db";
+	private static final String TABLE_NAME_WORD = "table_word";
+	private static final String TABLE_NAME_FORENAME = "table_forename";
 	private static final int DATABASE_VERSION = 1;
 	private static final String DEBUG_TAG = "DatabaseHelper";
 	private String DB_PATH;
 	private Context context;
 	private SQLiteDatabase myDataBase;
 	private static final String ns = null;
+	public static final String RESOURCE_PREFIX_WORDS = "WN";
+	public static final String RESOURCE_PREFIX_FORENAMES = "WFN";
+	public static final int POPULATE_DB_START = 0;
+	public static final int POPULATE_DB_END = 476;
 
 	public DatabaseHelper(Context context) {
 		super(context, DB_NAME, null, DATABASE_VERSION);
@@ -138,7 +144,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		// Open the database
 		String myPath = DB_PATH;
 		myDataBase = SQLiteDatabase.openDatabase(myPath, null,
-				SQLiteDatabase.OPEN_READONLY);
+				SQLiteDatabase.OPEN_READWRITE);
 		//OPEN_READWRITE for populating the DB
 
 	}
@@ -167,18 +173,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		return myDataBase.rawQuery(string, selectionArgs);
 	}
 
-	public void populateDBInitial() {
+	public void populateDBInitial(String resourcePrefix) {
+		String tableName = null;
+		if (resourcePrefix.equals(RESOURCE_PREFIX_FORENAMES)) {
+			tableName = TABLE_NAME_FORENAME;
+		} else if (resourcePrefix.equals(RESOURCE_PREFIX_WORDS)) {
+			tableName = TABLE_NAME_WORD;
+		} else {
+			return;
+		}
 		ConnectivityManager connMgr = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if (networkInfo != null && networkInfo.isConnected()) {
-			for (int i = MainActivity.LOW; i <= MainActivity.HIGH; i++) {
-				String resourceName = "WN" + String.format("%04d", i);
+			for (int i = POPULATE_DB_START; i <= POPULATE_DB_END; i++) {
+				String resourceName = resourcePrefix + String.format("%04d", i);
 				int identifier = getStringIdentifier(context, resourceName);
 				if (identifier != 0) {
 					String name = context.getString(identifier);
 					if (name != null) {
-						new DownloadWebpageTask().execute(context
+						DownloadWebpageTask task = new DownloadWebpageTask();
+						task.setTableName(tableName);
+						task.execute(context
 								.getString(R.string.string_url) + name);
 					}
 				}
@@ -196,8 +212,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	private class DownloadWebpageTask extends
 			AsyncTask<String, Void, List<String>> {
-
+		
 		private String name;
+		private String tableName;
+		
+		public void setTableName(String tableName) {
+			this.tableName = tableName;
+		}		
 
 		@Override
 		protected List<String> doInBackground(String... urls) {
@@ -218,12 +239,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		@Override
 		protected void onPostExecute(List<String> result) {
 			if (name != null && result != null && !result.isEmpty()) {
-				dbInsert(name, result);
+				dbInsert(tableName, name, result);
 			}
 
 		}
 
-		private void dbInsert(String wordName, List<String> result) {
+		private void dbInsert(String tableName, String wordName, List<String> result) {
 			ContentValues values = new ContentValues();
 			if (result != null) {
 				values.put("name", wordName);
@@ -244,7 +265,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				}
 
 				try {
-					myDataBase.insertOrThrow("table_word", null, values);
+					myDataBase.insertOrThrow(tableName, null, values);
 				} catch (Exception e) {
 					// catch code
 				}

@@ -43,10 +43,13 @@ public class MainActivity extends ListActivity {
 	private final long startTime = 10 * 1000;
 	private final long interval = 1 * 100;
 	public static final int RESULTS_MAX = 8;
-	public static final int LOW = 1;
-	public static final int HIGH = 1000; // 2260 number of word names in the
+	public static final int LOW_WORDS = 1;
+	public static final int HIGH_WORDS = 1000; // 2260 number of word names in the
 											// names.xml resource
-	public static final String TABLE_NAME = "table_word";
+	public static final String TABLE_NAME_WORDS = "table_word";
+	public static final int LOW_FORENAMES = 1;
+	public static final int HIGH_FORENAMES = 476;
+	public static final String TABLE_NAME_FORENAMES = "table_forename";
 	public static final int POINTS_FIRST = 10;
 	public static final int POINTS_SECOND = 7;
 	public static final int POINTS_THIRD = 5;
@@ -236,10 +239,10 @@ public class MainActivity extends ListActivity {
 	public void buttonActivity(View view) {
 		// this will never be here after, just using it to populate the
 		// database.
-		// myDbHelper.populateDBInitial();
+		//myDbHelper.populateDBInitial(DatabaseHelper.RESOURCE_PREFIX_FORENAMES);
 		stopTimer();
 		mTimerView.setText(R.string.timer);
-		getNextWord();
+		getNextWord(TABLE_NAME_FORENAMES);
 		clearListViewColours();
 	}
 
@@ -251,12 +254,24 @@ public class MainActivity extends ListActivity {
 		}
 	}
 
-	private void getNextWord() {
-		wordID = getRandomID(HIGH, LOW);
+	private void getNextWord(String tableName) {
+		int low = 0;
+		int high = 0;
+		
+		if (tableName.equals(TABLE_NAME_WORDS)) {
+			low = LOW_WORDS;
+			high = HIGH_WORDS;
+		} else if (tableName.equals(TABLE_NAME_FORENAMES)) {
+			low = LOW_FORENAMES;
+			high = HIGH_FORENAMES;
+		} else {
+			return;
+		}
+		wordID = getRandomID(high, low);
 
 		String[] selectionArgs = { String.valueOf(wordID) };
 
-		Cursor c = myDbHelper.rawQuery("select * from " + TABLE_NAME
+		Cursor c = myDbHelper.rawQuery("select * from " + tableName
 				+ " where CAST(_id AS TEXT) = ?", selectionArgs);
 
 		if (c.moveToFirst()) {
@@ -272,7 +287,7 @@ public class MainActivity extends ListActivity {
 			startTimer();
 
 		} else {
-			getNextWord();
+			getNextWord(tableName);
 		}
 	}
 

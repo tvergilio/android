@@ -9,20 +9,20 @@
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="true" key="wrap"/>
-		<item value="true" key="casesensitive"/>
+		<item value="false" key="casesensitive"/>
 		<item value="false" key="isRegEx"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="earned" key="selection"/>
+		<item value="wn" key="selection"/>
 		<list key="findhistory">
+			<item value="WN"/>
+			<item value="newG"/>
+			<item value="new"/>
+			<item value="RESULTS"/>
+			<item value="menu"/>
+			<item value="toast"/>
+			<item value="token"/>
 			<item value="earned"/>
-			<item value="you"/>
-			<item value="shape"/>
-			<item value="those"/>
-			<item value="populate"/>
-			<item value="_id"/>
-			<item value="getting"/>
-			<item value="list"/>
 		</list>
 		<list key="replacehistory">
 			<item value="word"/>

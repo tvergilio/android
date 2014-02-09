@@ -36,4 +36,8 @@
 <fullyQualifiedTypeName name="com.example.googleitdb.R.style"/>
 <fullyQualifiedTypeName name="android.widget.TextView"/>
 <fullyQualifiedTypeName name="android.graphics.Color"/>
+<fullyQualifiedTypeName name="com.example.googleitdb.R.color"/>
+<fullyQualifiedTypeName name="android.view.Gravity"/>
+<fullyQualifiedTypeName name="android.view.MenuInflater"/>
+<fullyQualifiedTypeName name="com.example.googleitdb.DatabaseHelper"/>
 </qualifiedTypeNameHistroy>
