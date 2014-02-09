@@ -139,6 +139,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		String myPath = DB_PATH;
 		myDataBase = SQLiteDatabase.openDatabase(myPath, null,
 				SQLiteDatabase.OPEN_READONLY);
+		//OPEN_READWRITE for populating the DB
 
 	}
 
@@ -167,7 +168,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	}
 
 	public void populateDBInitial() {
-		ConnectivityManager connMgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connMgr = (ConnectivityManager) context
+				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if (networkInfo != null && networkInfo.isConnected()) {
 			for (int i = MainActivity.LOW; i <= MainActivity.HIGH; i++) {
@@ -176,8 +178,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				if (identifier != 0) {
 					String name = context.getString(identifier);
 					if (name != null) {
-						new DownloadWebpageTask()
-								.execute(context.getString(R.string.string_url) + name);
+						new DownloadWebpageTask().execute(context
+								.getString(R.string.string_url) + name);
 					}
 				}
 			}
@@ -186,8 +188,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			System.out.println("No network connection available.");
 		}
 	}
-
-
 
 	public static int getStringIdentifier(Context context, String name) {
 		return context.getResources().getIdentifier(name, "string",
@@ -225,17 +225,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 		private void dbInsert(String wordName, List<String> result) {
 			ContentValues values = new ContentValues();
-			values.put("name", wordName);
-			values.put("first_suggestion", result.get(0));
-			values.put("second_suggestion", result.get(1));
-			values.put("third_suggestion", result.get(2));
-			values.put("fourth_suggestion", result.get(3));
-			values.put("fifth_suggestion", result.get(4));
+			if (result != null) {
+				values.put("name", wordName);
+				if (result.size() > 0) {
+					values.put("first_suggestion", result.get(0));
+				}
+				if (result.size() > 1) {
+					values.put("second_suggestion", result.get(1));
+				}
+				if (result.size() > 2) {
+					values.put("third_suggestion", result.get(2));
+				}
+				if (result.size() > 3) {
+					values.put("fourth_suggestion", result.get(3));
+				}
+				if (result.size() > 4) {
+					values.put("fifth_suggestion", result.get(4));
+				}
 
-			try {
-				myDataBase.insertOrThrow("table_word", null, values);
-			} catch (Exception e) {
-				// catch code
+				try {
+					myDataBase.insertOrThrow("table_word", null, values);
+				} catch (Exception e) {
+					// catch code
+				}
 			}
 		}
 

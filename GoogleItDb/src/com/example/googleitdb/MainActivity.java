@@ -9,53 +9,51 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import android.app.Activity;
 import android.app.ListActivity;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
+import android.view.Gravity;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends ListActivity {
-	private static final String DEBUG_TAG = "MainActivity";
-	private TextView serviceTextMain;
-	private String wordName;
+
+	private TextView mWordNameView;
+	private TextView mScoreView;
+	private TextView mTimerView;
 	private int wordID;
-	private TextView score;
+	private String wordName;
+	private ArrayAdapter<String> adapter;
 	private int points;
 	private Map<String, Integer> resultPoints;
-	private ArrayAdapter<String> adapter;
+	private int pointsJustEarned;
+	private CountDownTimer countdownTimer;
+	private boolean timerHasStarted = false;
+	private final long startTime = 10 * 1000;
+	private final long interval = 1 * 100;
 	public static final int RESULTS_MAX = 8;
 	public static final int LOW = 1;
-	public static final int HIGH = 300; // 2260 number of word names in the
-										// names.xml resource
+	public static final int HIGH = 1000; // 2260 number of word names in the
+											// names.xml resource
 	public static final String TABLE_NAME = "table_word";
 	public static final int POINTS_FIRST = 10;
 	public static final int POINTS_SECOND = 7;
 	public static final int POINTS_THIRD = 5;
 	public static final int POINTS_FOURTH = 3;
 	public static final int POINTS_FIFTH = 0;
-
 	SQLiteDatabase db;
 	DatabaseHelper myDbHelper;
-
-	private int pointsJustEarned;
-	private CountDownTimer countdownTimer;
-	private boolean timerHasStarted = false;
-	private TextView timerView;
-	private final long startTime = 10 * 1000;
-	private final long interval = 1 * 100;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -63,29 +61,26 @@ public class MainActivity extends ListActivity {
 		setContentView(R.layout.activity_main);
 		List<String> result = new ArrayList<String>();
 		resultPoints = new HashMap<String, Integer>();
-		score = (TextView) findViewById(R.id.score);
-		setScore(points);
+		mScoreView = (TextView) findViewById(R.id.score);
 		adapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_list_item_1, result);
 		getListView().setAdapter(adapter);
 		getListView().setTextFilterEnabled(true);
-		serviceTextMain = (TextView) findViewById(R.id.service_text_main);
-		timerView = (TextView) findViewById(R.id.timer);
+		mWordNameView = (TextView) findViewById(R.id.service_text_main);
+		mTimerView = (TextView) findViewById(R.id.timer);
 		countdownTimer = new CountDownTimer(startTime, interval) {
 
 			@Override
 			public void onFinish() {
-				timerView.setText("time's up!");
+				mTimerView.setText("time's up!");
 				timerHasStarted = false;
 			}
 
 			@Override
 			public void onTick(long millisUntilFinished) {
-				timerView.setText("time: "
-						+ (int) (long) millisUntilFinished / 100);
-
+				mTimerView.setText("time: " + (int) (long) millisUntilFinished
+						/ 100);
 			}
-
 		};
 
 		myDbHelper = new DatabaseHelper(this);
@@ -98,7 +93,7 @@ public class MainActivity extends ListActivity {
 		} catch (SQLException sqle) {
 			throw new Error("SQL Exception");
 		}
-
+		newGame();
 	}
 
 	@Override
@@ -111,27 +106,93 @@ public class MainActivity extends ListActivity {
 		Object o = adapter.getItem(position);
 		String item = o.toString();
 		if (!resultPoints.isEmpty()) {
-			pointsJustEarned = resultPoints.get(item);
+			String pointsFromTime = String.valueOf(mTimerView.getText());
+			pointsFromTime = pointsFromTime.substring("time: ".length());
+			int pointsToAdd = Integer.valueOf(pointsFromTime);
+			pointsJustEarned = resultPoints.get(item) * pointsToAdd;
 			points += pointsJustEarned;
-//			final Toast toast = Toast.makeText(this, "That's worth "
-//					+ pointsJustEarned + " points.", Toast.LENGTH_SHORT);
-//			toast.show();
-//			Handler handler = new Handler();
-//			handler.postDelayed(new Runnable() {
-//				@Override
-//				public void run() {
-//					toast.cancel();
-//				}
-//			}, 500);
-			getNextWord();
+			setScore(points);
+			stopTimer();
+			makeToast("You've earned " + pointsJustEarned + " points.");
+			showAnswerValues(l, v);
 		}
+	}
+
+	private void showAnswerValues(ListView l, View v) {
+		Integer answerPoints = 0;
+
+		if (v instanceof TextView) {
+			TextView textView = (TextView) v;
+			answerPoints = resultPoints.get(textView.getText());
+
+			if (answerPoints.equals(POINTS_FIRST)) {
+				v.setBackgroundColor(getResources().getColor(R.color.green));
+				textView.setText(textView.getText() + "                "
+						+ " 1st");
+				makeToast("well done!");
+			} else if (answerPoints.equals(POINTS_SECOND)) {
+				v.setBackgroundColor(getResources().getColor(R.color.saffron));
+				textView.setText(textView.getText() + "                "
+						+ " 2nd");
+				makeToast("second best ;)");
+			} else if (answerPoints.equals(POINTS_THIRD)) {
+				v.setBackgroundColor(getResources().getColor(R.color.saffron));
+				textView.setText(textView.getText() + "                "
+						+ " 3rd");
+				makeToast("not good, not bad");
+			} else if (answerPoints.equals(POINTS_FOURTH)) {
+				v.setBackgroundColor(getResources().getColor(R.color.saffron));
+				textView.setText(textView.getText() + "                "
+						+ " 4th");
+				makeToast("squit!");
+			} else if (answerPoints.equals(POINTS_FIFTH)) {
+				v.setBackgroundColor(getResources().getColor(R.color.red));
+				textView.setText(textView.getText() + "                "
+						+ " last");
+				makeToast("that's awful!");
+			}
+		}
+	}
+
+	private void makeToast(String text) {
+		Toast toast = Toast.makeText(this, text, Toast.LENGTH_SHORT);
+		toast.setGravity(Gravity.TOP, 100, 0);
+		toast.show();
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.main, menu);
+		inflater.inflate(R.menu.game_menu, menu);
 		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.new_game:
+			newGame();
+			return true;
+		case R.id.help:
+			showHelp();
+			return true;
+		default:
+			return super.onOptionsItemSelected(item);
+		}
+	}
+
+	private void showHelp() {
+		// TODO Auto-generated method stub
+	}
+
+	private void newGame() {
+		points = 0;
+		mWordNameView.setText("");
+		setScore(points);
+		adapter.clear();
+		stopTimer();
 	}
 
 	@Override
@@ -167,6 +228,7 @@ public class MainActivity extends ListActivity {
 			adapter.addAll(new ArrayList<String>(resultsPersisted));
 			adapter.notifyDataSetChanged();
 		}
+		mWordNameView.setText(wordName);
 		points = sharedPref.getInt(getString(R.string.saved_points), points);
 		setScore(points);
 	}
@@ -175,8 +237,18 @@ public class MainActivity extends ListActivity {
 		// this will never be here after, just using it to populate the
 		// database.
 		// myDbHelper.populateDBInitial();
-		timerView.setText(R.string.timer);
+		stopTimer();
+		mTimerView.setText(R.string.timer);
 		getNextWord();
+		clearListViewColours();
+	}
+
+	private void clearListViewColours() {
+		ListView l = getListView();
+		for (int i = 0; i < l.getChildCount(); i++) {
+			View v = l.getChildAt(i);
+			v.setBackgroundColor(Color.TRANSPARENT);
+		}
 	}
 
 	private void getNextWord() {
@@ -189,7 +261,7 @@ public class MainActivity extends ListActivity {
 
 		if (c.moveToFirst()) {
 			wordName = c.getString(1);
-			serviceTextMain.setText(wordName);
+			mWordNameView.setText(wordName);
 			resultPoints.clear();
 			resultPoints.put(c.getString(2), POINTS_FIRST);
 			resultPoints.put(c.getString(3), POINTS_SECOND);
@@ -205,9 +277,13 @@ public class MainActivity extends ListActivity {
 	}
 
 	private void startTimer() {
-		countdownTimer.cancel();
 		countdownTimer.start();
 		timerHasStarted = true;
+	}
+
+	private void stopTimer() {
+		countdownTimer.cancel();
+		timerHasStarted = false;
 	}
 
 	private void populateResultsList() {
@@ -226,10 +302,7 @@ public class MainActivity extends ListActivity {
 			clone.remove(key);
 		}
 
-		// adapter.clear();
-		// adapter.addAll(result);
 		adapter.notifyDataSetChanged();
-		setScore(points);
 
 	}
 
@@ -239,7 +312,7 @@ public class MainActivity extends ListActivity {
 	}
 
 	private void setScore(int points) {
-		score.setText("score: " + String.valueOf(points));
+		mScoreView.setText("score: " + String.valueOf(points));
 	}
 
 }

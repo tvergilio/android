@@ -12,3 +12,13 @@
 1391638684907	Extract method 'setScore'
 1391639136457	Extract method 'getNextWord'
 1391777386852	Delete element
+1391863016454	Extract method 'stopTimer'
+1391891015452	Extract method 'makeToast'
+1391903806073	Rename field 'serviceTextMain'
+1391903857870	Rename field 'score'
+1391903964162	Rename field 'timerView'
+1391903975604	Rename field 'mWordNameTextView'
+1391903984429	Rename field 'mScoreTextView'
+1391905229990	Rename resource 'ic_launcher.png'
+1391905262112	Rename resource 'scrambled.png'
+1391905501267	Rename resource 'ic_launcher.png'

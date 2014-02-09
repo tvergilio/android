@@ -18,7 +18,6 @@
 <fullyQualifiedTypeName name="android.database.SQLException"/>
 <fullyQualifiedTypeName name="com.tvergilio.googleit.MainActivity"/>
 <fullyQualifiedTypeName name="com.tvergilio.googleit.GoogleSuggestManagerService"/>
-<fullyQualifiedTypeName name="android.widget.TextView"/>
 <fullyQualifiedTypeName name="android.widget.BaseAdapter"/>
 <fullyQualifiedTypeName name="android.widget.ListView"/>
 <fullyQualifiedTypeName name="android.widget.ListAdapter"/>
@@ -34,4 +33,7 @@
 <fullyQualifiedTypeName name="com.example.googleitdb.R.string"/>
 <fullyQualifiedTypeName name="android.widget.Toast"/>
 <fullyQualifiedTypeName name="android.os.Handler"/>
+<fullyQualifiedTypeName name="com.example.googleitdb.R.style"/>
+<fullyQualifiedTypeName name="android.widget.TextView"/>
+<fullyQualifiedTypeName name="android.graphics.Color"/>
 </qualifiedTypeNameHistroy>

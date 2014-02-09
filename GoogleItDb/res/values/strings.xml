@@ -12,5 +12,7 @@
     <string name="saved_word_name">com.example.googleitdb.SAVED_WORD_NAME</string>
     <string name="saved_word_suggestions">com.example.googleitdb.SAVED_WORD_SUGGESTIONS</string>
     <string name="saved_points">com.example.googleitdb.SAVED_POINTS</string>
+    <string name="new_game">New Game</string>
+    <string name="help">Help</string>
 
 </resources>
