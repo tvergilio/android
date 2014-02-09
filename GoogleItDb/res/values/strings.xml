@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">GoogleItDb</string>
+    <string name="app_name">Google it!</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="get_word">Get New Word</string>
@@ -13,7 +13,8 @@
     <string name="saved_word_name">com.example.googleitdb.SAVED_WORD_NAME</string>
     <string name="saved_word_suggestions">com.example.googleitdb.SAVED_WORD_SUGGESTIONS</string>
     <string name="saved_points">com.example.googleitdb.SAVED_POINTS</string>
-    <string name="new_game">New Game</string>
+    <string name="new_game">Random Word Game</string>
+    <string name="new_game_forename">Name Game</string>
     <string name="help">Help</string>
 
 </resources>

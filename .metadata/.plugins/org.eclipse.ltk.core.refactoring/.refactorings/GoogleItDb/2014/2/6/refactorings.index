@@ -22,3 +22,6 @@
 1391905229990	Rename resource 'ic_launcher.png'
 1391905262112	Rename resource 'scrambled.png'
 1391905501267	Rename resource 'ic_launcher.png'
+1391973867706	Extract method 'connectToDatabase'
+1391975016430	Extract method 'getResourceID'
+1391975241544	Rename field 'DB_PATH'

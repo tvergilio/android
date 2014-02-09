@@ -28,24 +28,35 @@ import android.util.Xml;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
-	private static final String DB_NAME = "uk_words.db"; //change it to use the US one
-	private static final String TABLE_NAME_WORD = "table_word";
-	private static final String TABLE_NAME_FORENAME = "table_forename";
-	private static final int DATABASE_VERSION = 1;
-	private static final String DEBUG_TAG = "DatabaseHelper";
-	private String DB_PATH;
+	public static final String DB_NAME_UK = "uk_words.db"; //change it to use the US one
+	public static final String DB_NAME_US = "uk_words.db";
+	public static final String TABLE_NAME_WORD = "table_word";
+	public static final String TABLE_NAME_FORENAME = "table_forename";
+	public static final int DATABASE_VERSION = 1;
+	public static final String DEBUG_TAG = "DatabaseHelper";
+	public static final String RESOURCE_PREFIX_WORDS = "WN";
+	public static final String RESOURCE_PREFIX_FORENAMES = "WFN";
+	public static final int POPULATE_DB_START = 501;
+	public static final int POPULATE_DB_END = 1000;
+	private String dbPath;
 	private Context context;
 	private SQLiteDatabase myDataBase;
 	private static final String ns = null;
-	public static final String RESOURCE_PREFIX_WORDS = "WN";
-	public static final String RESOURCE_PREFIX_FORENAMES = "WFN";
-	public static final int POPULATE_DB_START = 6;
-	public static final int POPULATE_DB_END = 476;
+	private String tableName;
+	private String resourcePrefix;
+	private String dbName;
 
-	public DatabaseHelper(Context context) {
-		super(context, DB_NAME, null, DATABASE_VERSION);
+	public DatabaseHelper(Context context, String dbName, String resourcePrefix) {
+		super(context, dbName, null, DATABASE_VERSION);
 		this.context = context;
-		DB_PATH = context.getDatabasePath(DB_NAME).toString();
+		this.dbName = dbName;
+		this.resourcePrefix = resourcePrefix;
+		if (resourcePrefix.equals(RESOURCE_PREFIX_WORDS)) {
+			this.tableName = TABLE_NAME_WORD;
+		} else if (resourcePrefix.equals(RESOURCE_PREFIX_FORENAMES)) {
+			this.tableName = TABLE_NAME_FORENAME;
+		} 
+		dbPath = context.getDatabasePath(dbName).toString();
 	}
 
 	/**
@@ -90,7 +101,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		SQLiteDatabase checkDB = null;
 
 		try {
-			String myPath = DB_PATH;
+			String myPath = dbPath;
 			checkDB = SQLiteDatabase.openDatabase(myPath, null,
 					SQLiteDatabase.OPEN_READONLY);
 
@@ -117,10 +128,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	private void copyDataBase() throws IOException {
 
 		// Open your local db as the input stream
-		InputStream myInput = context.getAssets().open(DB_NAME);
+		InputStream myInput = context.getAssets().open(dbName);
 
 		// Path to the just created empty db
-		String outFileName = DB_PATH;
+		String outFileName = dbPath;
 
 		// Open the empty db as the output stream
 		OutputStream myOutput = new FileOutputStream(outFileName);
@@ -142,7 +153,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	public void openDataBase() throws SQLException {
 
 		// Open the database
-		String myPath = DB_PATH;
+		String myPath = dbPath;
 		myDataBase = SQLiteDatabase.openDatabase(myPath, null,
 				SQLiteDatabase.OPEN_READONLY);
 		//OPEN_READWRITE for populating the DB
@@ -173,29 +184,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		return myDataBase.rawQuery(string, selectionArgs);
 	}
 
-	public void populateDBInitial(String resourcePrefix) {
-		String tableName = null;
-		if (resourcePrefix.equals(RESOURCE_PREFIX_FORENAMES)) {
-			tableName = TABLE_NAME_FORENAME;
-		} else if (resourcePrefix.equals(RESOURCE_PREFIX_WORDS)) {
-			tableName = TABLE_NAME_WORD;
-		} else {
-			return;
-		}
+	public void populateDBInitial() {
+
 		ConnectivityManager connMgr = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if (networkInfo != null && networkInfo.isConnected()) {
 			for (int i = POPULATE_DB_START; i <= POPULATE_DB_END; i++) {
 				String resourceName = resourcePrefix + String.format("%04d", i);
+				String resourceID = getResourceID();
 				int identifier = getStringIdentifier(context, resourceName);
 				if (identifier != 0) {
 					String name = context.getString(identifier);
 					if (name != null) {
 						DownloadWebpageTask task = new DownloadWebpageTask();
 						task.setTableName(tableName);
-						task.execute(context
-								.getString(R.string.string_url_uk) + name);
+						task.execute(resourceID + name);
 					}
 				}
 			}
@@ -203,6 +207,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		} else {
 			System.out.println("No network connection available.");
 		}
+	}
+
+	private String getResourceID() {
+		String resourceID = dbName.equals(DB_NAME_UK) ? context
+				.getString(R.string.string_url_uk) : context
+				.getString(R.string.string_url);
+		return resourceID;
 	}
 
 	public static int getStringIdentifier(Context context, String name) {
@@ -224,8 +235,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		protected List<String> doInBackground(String... urls) {
 			// params comes from the execute() call: params[0] is the url.
 			try {
-				name = urls[0].substring(context.getString(R.string.string_url_uk)
-						.length());
+				String resourceID = getResourceID();
+				if (resourceID != null) {
+					name = urls[0].substring(resourceID.length());
+				}
 				return downloadUrl(urls[0] + "%20");
 
 			} catch (IOException e) {

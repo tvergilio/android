@@ -57,6 +57,7 @@ public class MainActivity extends ListActivity {
 	public static final int POINTS_FIFTH = 0;
 	SQLiteDatabase db;
 	DatabaseHelper myDbHelper;
+	private String tableName;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -85,8 +86,13 @@ public class MainActivity extends ListActivity {
 						/ 100);
 			}
 		};
+		tableName = TABLE_NAME_WORDS;
+		connectToDatabase(DatabaseHelper.DB_NAME_UK, DatabaseHelper.RESOURCE_PREFIX_WORDS);
+		newGame();
+	}
 
-		myDbHelper = new DatabaseHelper(this);
+	private void connectToDatabase(String dbName, String resourcePrefix) throws Error {
+		myDbHelper = new DatabaseHelper(this, dbName, resourcePrefix);
 		try {
 			myDbHelper.createDataBase();
 			myDbHelper.openDataBase();
@@ -96,7 +102,6 @@ public class MainActivity extends ListActivity {
 		} catch (SQLException sqle) {
 			throw new Error("SQL Exception");
 		}
-		newGame();
 	}
 
 	@Override
@@ -176,6 +181,11 @@ public class MainActivity extends ListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.new_game:
+			tableName = TABLE_NAME_WORDS;
+			newGame();
+			return true;
+		case R.id.new_game_forename:
+			tableName = TABLE_NAME_FORENAMES;
 			newGame();
 			return true;
 		case R.id.help:
@@ -239,10 +249,10 @@ public class MainActivity extends ListActivity {
 	public void buttonActivity(View view) {
 		// this will never be here after, just using it to populate the
 		// database.
-		//myDbHelper.populateDBInitial(DatabaseHelper.RESOURCE_PREFIX_FORENAMES);
+		//myDbHelper.populateDBInitial();
 		stopTimer();
 		mTimerView.setText(R.string.timer);
-		getNextWord(TABLE_NAME_FORENAMES);
+		getNextWord();
 		clearListViewColours();
 	}
 
@@ -254,7 +264,7 @@ public class MainActivity extends ListActivity {
 		}
 	}
 
-	private void getNextWord(String tableName) {
+	private void getNextWord() {
 		int low = 0;
 		int high = 0;
 		
@@ -287,7 +297,7 @@ public class MainActivity extends ListActivity {
 			startTimer();
 
 		} else {
-			getNextWord(tableName);
+			getNextWord();
 		}
 	}
 

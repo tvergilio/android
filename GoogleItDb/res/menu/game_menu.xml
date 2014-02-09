@@ -3,9 +3,14 @@
 
     <item
         android:id="@+id/new_game"
-        android:icon="@drawable/ic_jigsaw"
+        android:icon="@drawable/ic_dictionary"
         android:showAsAction="ifRoom"
         android:title="@string/new_game"/>
+    <item
+        android:id="@+id/new_game_forename"
+        android:icon="@drawable/ic_person"
+        android:showAsAction="ifRoom"
+        android:title="@string/new_game_forename"/>
     <item
         android:id="@+id/help"
         android:icon="@drawable/ic_help"
