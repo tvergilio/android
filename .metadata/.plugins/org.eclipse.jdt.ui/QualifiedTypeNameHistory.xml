@@ -14,7 +14,6 @@
 <fullyQualifiedTypeName name="android.database.sqlite.SQLiteOpenHelper"/>
 <fullyQualifiedTypeName name="java.io.IOException"/>
 <fullyQualifiedTypeName name="android.database.sqlite.SQLiteException"/>
-<fullyQualifiedTypeName name="java.io.InputStream"/>
 <fullyQualifiedTypeName name="android.database.SQLException"/>
 <fullyQualifiedTypeName name="com.tvergilio.googleit.MainActivity"/>
 <fullyQualifiedTypeName name="com.tvergilio.googleit.GoogleSuggestManagerService"/>
@@ -39,7 +38,18 @@
 <fullyQualifiedTypeName name="android.view.MenuInflater"/>
 <fullyQualifiedTypeName name="com.example.googleitdb.DatabaseHelper"/>
 <fullyQualifiedTypeName name="com.example.googleitdb.R.id"/>
-<fullyQualifiedTypeName name="com.example.googleitdb.R.color"/>
 <fullyQualifiedTypeName name="com.example.googleitdb.R.string"/>
 <fullyQualifiedTypeName name="android.widget.LinearLayout"/>
+<fullyQualifiedTypeName name="android.R"/>
+<fullyQualifiedTypeName name="android.R.id"/>
+<fullyQualifiedTypeName name="android.graphics.drawable.GradientDrawable"/>
+<fullyQualifiedTypeName name="com.example.googleitdb.R.color"/>
+<fullyQualifiedTypeName name="android.graphics.ColorFilter"/>
+<fullyQualifiedTypeName name="android.graphics.Movie"/>
+<fullyQualifiedTypeName name="java.io.InputStream"/>
+<fullyQualifiedTypeName name="android.graphics.Canvas"/>
+<fullyQualifiedTypeName name="android.content.Context"/>
+<fullyQualifiedTypeName name="android.graphics.drawable.AnimationDrawable"/>
+<fullyQualifiedTypeName name="com.hipmob.gifanimationdrawable.GifAnimationDrawable"/>
+<fullyQualifiedTypeName name="java.io.File"/>
 </qualifiedTypeNameHistroy>

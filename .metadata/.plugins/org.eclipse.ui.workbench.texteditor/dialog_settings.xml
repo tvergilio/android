@@ -13,16 +13,16 @@
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="" key="selection"/>
+		<item value="Create" key="selection"/>
 		<list key="findhistory">
+			<item value="gradientdrawables"/>
+			<item value="createGradi"/>
+			<item value="create"/>
+			<item value="setColorFilter"/>
+			<item value="setColors"/>
+			<item value="setColor"/>
+			<item value="parchment"/>
 			<item value="_result"/>
-			<item value="yellow"/>
-			<item value="SG0"/>
-			<item value="WN"/>
-			<item value="newG"/>
-			<item value="new"/>
-			<item value="RESULTS"/>
-			<item value="menu"/>
 		</list>
 		<list key="replacehistory">
 			<item value="SGN0"/>
