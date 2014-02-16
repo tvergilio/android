@@ -23,6 +23,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +33,9 @@ public class MainActivity extends ListActivity {
 	private TextView mWordNameView;
 	private TextView mScoreView;
 	private TextView mTimerView;
+	private TextView mResultView;
+	private TextView mResultPointsEarned;
+	private LinearLayout mResultLayout;
 	private int wordID;
 	private String wordName;
 	private ArrayAdapter<String> adapter;
@@ -43,13 +47,11 @@ public class MainActivity extends ListActivity {
 	private final long startTime = 10 * 1000;
 	private final long interval = 1 * 100;
 	public static final int RESULTS_MAX = 8;
-	public static final int LOW_WORDS = 1;
+	public static final int LOW = 1;
 	public static final int HIGH_WORDS = 1000; // 2260 number of word names in the
 											// names.xml resource
-	public static final String TABLE_NAME_WORDS = "table_word";
-	public static final int LOW_FORENAMES = 1;
 	public static final int HIGH_FORENAMES = 476;
-	public static final String TABLE_NAME_FORENAMES = "table_forename";
+	public static final int HIGH_SENTENCES = 454;
 	public static final int POINTS_FIRST = 10;
 	public static final int POINTS_SECOND = 7;
 	public static final int POINTS_THIRD = 5;
@@ -66,6 +68,9 @@ public class MainActivity extends ListActivity {
 		List<String> result = new ArrayList<String>();
 		resultPoints = new HashMap<String, Integer>();
 		mScoreView = (TextView) findViewById(R.id.score);
+		mResultLayout = (LinearLayout) findViewById(R.id.result_layout);
+		mResultView = (TextView) findViewById(R.id.result_text);
+		mResultPointsEarned = (TextView) findViewById(R.id.result_points_earned);
 		adapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_list_item_1, result);
 		getListView().setAdapter(adapter);
@@ -86,8 +91,8 @@ public class MainActivity extends ListActivity {
 						/ 100);
 			}
 		};
-		tableName = TABLE_NAME_WORDS;
-		connectToDatabase(DatabaseHelper.DB_NAME_UK, DatabaseHelper.RESOURCE_PREFIX_WORDS);
+		tableName = DatabaseHelper.TABLE_NAME_SENTENCE;
+		connectToDatabase(DatabaseHelper.DB_NAME_UK, DatabaseHelper.RESOURCE_PREFIX_SENTENCES);
 		newGame();
 	}
 
@@ -135,30 +140,29 @@ public class MainActivity extends ListActivity {
 
 			if (answerPoints.equals(POINTS_FIRST)) {
 				v.setBackgroundColor(getResources().getColor(R.color.green));
-				textView.setText(textView.getText() + "                "
-						+ " 1st");
-				makeToast("well done!");
+				mResultView.setText(getString(R.string.result_first));				
+
 			} else if (answerPoints.equals(POINTS_SECOND)) {
 				v.setBackgroundColor(getResources().getColor(R.color.saffron));
-				textView.setText(textView.getText() + "                "
-						+ " 2nd");
-				makeToast("second best ;)");
+				mResultView.setText(getString(R.string.result_second));
+
 			} else if (answerPoints.equals(POINTS_THIRD)) {
 				v.setBackgroundColor(getResources().getColor(R.color.saffron));
-				textView.setText(textView.getText() + "                "
-						+ " 3rd");
-				makeToast("not good, not bad");
+				mResultView.setText(getString(R.string.result_third));
+
 			} else if (answerPoints.equals(POINTS_FOURTH)) {
 				v.setBackgroundColor(getResources().getColor(R.color.saffron));
-				textView.setText(textView.getText() + "                "
-						+ " 4th");
-				makeToast("squit!");
+				mResultView.setText(getString(R.string.result_fourth));
+
 			} else if (answerPoints.equals(POINTS_FIFTH)) {
 				v.setBackgroundColor(getResources().getColor(R.color.red));
-				textView.setText(textView.getText() + "                "
-						+ " last");
-				makeToast("that's awful!");
+				mResultView.setText(getString(R.string.result_fifth));
+
 			}
+			//mResultView.setBackgroundColor(getResources().getColor(R.color.yellow));
+			mResultPointsEarned.setText("+ " + answerPoints + " points");
+			mResultLayout.setVisibility(View.VISIBLE);
+			mResultView.setVisibility(View.VISIBLE);
 		}
 	}
 
@@ -181,11 +185,11 @@ public class MainActivity extends ListActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.new_game:
-			tableName = TABLE_NAME_WORDS;
+			tableName = DatabaseHelper.TABLE_NAME_WORD;
 			newGame();
 			return true;
 		case R.id.new_game_forename:
-			tableName = TABLE_NAME_FORENAMES;
+			tableName = DatabaseHelper.TABLE_NAME_FORENAME;
 			newGame();
 			return true;
 		case R.id.help:
@@ -203,6 +207,7 @@ public class MainActivity extends ListActivity {
 	private void newGame() {
 		points = 0;
 		mWordNameView.setText("");
+		mResultLayout.setVisibility(View.INVISIBLE);
 		setScore(points);
 		adapter.clear();
 		stopTimer();
@@ -252,6 +257,7 @@ public class MainActivity extends ListActivity {
 		//myDbHelper.populateDBInitial();
 		stopTimer();
 		mTimerView.setText(R.string.timer);
+		mResultLayout.setVisibility(View.INVISIBLE);
 		getNextWord();
 		clearListViewColours();
 	}
@@ -265,19 +271,18 @@ public class MainActivity extends ListActivity {
 	}
 
 	private void getNextWord() {
-		int low = 0;
 		int high = 0;
 		
-		if (tableName.equals(TABLE_NAME_WORDS)) {
-			low = LOW_WORDS;
+		if (tableName.equals(DatabaseHelper.TABLE_NAME_WORD)) {
 			high = HIGH_WORDS;
-		} else if (tableName.equals(TABLE_NAME_FORENAMES)) {
-			low = LOW_FORENAMES;
+		} else if (tableName.equals(DatabaseHelper.TABLE_NAME_FORENAME)) {
 			high = HIGH_FORENAMES;
+		} else if (tableName.equals(DatabaseHelper.TABLE_NAME_SENTENCE)) {
+			high = HIGH_SENTENCES;
 		} else {
 			return;
 		}
-		wordID = getRandomID(high, low);
+		wordID = getRandomID(high, LOW);
 
 		String[] selectionArgs = { String.valueOf(wordID) };
 

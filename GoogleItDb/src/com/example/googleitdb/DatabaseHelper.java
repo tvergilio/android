@@ -32,12 +32,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 	public static final String DB_NAME_US = "uk_words.db";
 	public static final String TABLE_NAME_WORD = "table_word";
 	public static final String TABLE_NAME_FORENAME = "table_forename";
+	public static final String TABLE_NAME_SENTENCE = "table_sentence";
 	public static final int DATABASE_VERSION = 1;
 	public static final String DEBUG_TAG = "DatabaseHelper";
 	public static final String RESOURCE_PREFIX_WORDS = "WN";
 	public static final String RESOURCE_PREFIX_FORENAMES = "WFN";
-	public static final int POPULATE_DB_START = 501;
-	public static final int POPULATE_DB_END = 1000;
+	public static final String RESOURCE_PREFIX_SENTENCES = "SGN";
+	public static final int POPULATE_DB_START = 0;
+	public static final int POPULATE_DB_END = 0;
 	private String dbPath;
 	private Context context;
 	private SQLiteDatabase myDataBase;
@@ -55,6 +57,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 			this.tableName = TABLE_NAME_WORD;
 		} else if (resourcePrefix.equals(RESOURCE_PREFIX_FORENAMES)) {
 			this.tableName = TABLE_NAME_FORENAME;
+		} else if (resourcePrefix.equals(RESOURCE_PREFIX_SENTENCES)) {
+			this.tableName = TABLE_NAME_SENTENCE;
 		} 
 		dbPath = context.getDatabasePath(dbName).toString();
 	}
@@ -197,6 +201,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				if (identifier != 0) {
 					String name = context.getString(identifier);
 					if (name != null) {
+						name = name.replace(" ", "%20");
 						DownloadWebpageTask task = new DownloadWebpageTask();
 						task.setTableName(tableName);
 						task.execute(resourceID + name);
@@ -238,6 +243,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 				String resourceID = getResourceID();
 				if (resourceID != null) {
 					name = urls[0].substring(resourceID.length());
+					name = name.replace("%20", " ");
 				}
 				return downloadUrl(urls[0] + "%20");
 

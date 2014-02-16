@@ -3,28 +3,29 @@
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">
 		<item value="305" key="DIALOG_WIDTH"/>
 		<item value="230" key="DIALOG_Y_ORIGIN"/>
-		<item value="1321" key="DIALOG_X_ORIGIN"/>
 		<item value="442" key="DIALOG_HEIGHT"/>
+		<item value="1321" key="DIALOG_X_ORIGIN"/>
 		<item value="1|Segoe UI|9.0|0|WINDOWS|1|-15|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI" key="DIALOG_FONT_NAME"/>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="true" key="wrap"/>
-		<item value="false" key="casesensitive"/>
 		<item value="false" key="isRegEx"/>
+		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="false" key="wholeword"/>
-		<item value="wn" key="selection"/>
+		<item value="" key="selection"/>
 		<list key="findhistory">
+			<item value="_result"/>
+			<item value="yellow"/>
+			<item value="SG0"/>
 			<item value="WN"/>
 			<item value="newG"/>
 			<item value="new"/>
 			<item value="RESULTS"/>
 			<item value="menu"/>
-			<item value="toast"/>
-			<item value="token"/>
-			<item value="earned"/>
 		</list>
 		<list key="replacehistory">
+			<item value="SGN0"/>
 			<item value="word"/>
 			<item value="Word"/>
 			<item value="WordDb"/>

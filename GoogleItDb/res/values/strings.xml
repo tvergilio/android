@@ -16,5 +16,10 @@
     <string name="new_game">Random Word Game</string>
     <string name="new_game_forename">Name Game</string>
     <string name="help">Help</string>
+    <string name="result_first">1st Well done!</string>
+    <string name="result_second">2nd best...</string>
+    <string name="result_third">3rd Not bad!</string>
+    <string name="result_fourth">4th You squit!</string>
+    <string name="result_fifth">5th That is awful!</string>
 
 </resources>
